@@ -11,4 +11,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
 
     def __repr__(self):
-        return f'User {self.id}, {self.email}'
+        return f'User {self.id} ' \
+               f'\nemail: {self.email} ' \
+               f'\npassword_hash: {self.password_hash} ' \
+               f'\nname: {self.name}' \
+               f'\ncreated_at {self.created_at}'
