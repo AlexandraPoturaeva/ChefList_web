@@ -23,3 +23,4 @@ def test_add_user(app, db, Model):
 
 if __name__ == '__main__':
     print(test_add_user(create_app(), db, User))
+
