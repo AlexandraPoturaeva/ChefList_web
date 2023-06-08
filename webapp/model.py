@@ -13,6 +13,5 @@ class User(db.Model):
     def __repr__(self):
         return f'User {self.id} ' \
                f'\nemail: {self.email} ' \
-               f'\npassword_hash: {self.password_hash} ' \
                f'\nname: {self.name}' \
                f'\ncreated_at {self.created_at}'

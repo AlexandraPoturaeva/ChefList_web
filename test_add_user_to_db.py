@@ -14,10 +14,11 @@ def test_add_user(app, db, Model):
     with app.app_context():
         db.session.add(user)
         db.session.commit()
-        data = Model.query.all()
-        db.session.query(Model).delete()
+        data = Model.query.filter_by(email='example@example.com').first()
+        db.session.delete(data)
         db.session.commit()
 
+    assert data == user
     return data
 
 
