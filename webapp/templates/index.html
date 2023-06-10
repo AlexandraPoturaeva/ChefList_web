@@ -271,15 +271,21 @@
           </ul>
 
           <form class="d-flex" role="search">
-            <button class="btn btn-outline-success" type="submit">
-              Зарегестрироваться
-            </button>
+            <a class="btn btn-outline-success" href="{{ url_for('registration') }}" role="button">Зарегистрироваться</a>
             <button class="btn btn-outline-success" type="submit">Войти</button>
           </form>
         </div>
       </div>
     </nav>
-
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-warning" role="alert">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
     <main class="container">
       <div class="bg-body-tertiary p-5 rounded">
         <h1>Первый рецепт</h1>
