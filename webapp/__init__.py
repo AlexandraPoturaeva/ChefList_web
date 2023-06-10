@@ -14,9 +14,8 @@ def create_app():
 
     @app.route("/registration")
     def registration():
-        title = 'Регистрация'
         form = RegistrationForm()
-        return render_template('registration.html', page_title=title, form=form)
+        return render_template('registration.html', form=form)
 
     @app.route("/process-reg", methods=['POST'])
     def process_reg():
