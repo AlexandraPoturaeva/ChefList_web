@@ -1,7 +1,8 @@
 from flask import Flask, flash, redirect, render_template, url_for
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager,current_user, login_required, login_user, logout_user
 from webapp.forms import LoginForm, RegistrationForm
 from webapp.model import db, User
+from sqlalchemy.orm.exc import NoResultFound
 
 
 def create_app():
@@ -44,27 +45,44 @@ def create_app():
                     ))
         return redirect(url_for('registration'))
 
-    @app.route('/login')
+    @app.route('/login', methods=['GET', 'POST'])
     def login():
+        if current_user.is_authenticated:
+            return redirect(url_for('profile'))
+
         form = LoginForm()
+        if form.validate_on_submit():
+            user = None
+            try:
+                user = User.query.filter(User.email == form.email.data).one()
+            except NoResultFound:
+                flash('Пользователь с таким email не зарегистрирован')
+
+            if user:
+                if user.check_password(form.password.data):
+                    login_user(user)
+                    flash('Вы успешно вошли на сайт')
+                    return redirect(url_for('profile'))
+                else:
+                    flash('Неверный пароль')
+
+            return redirect(url_for('login'))
+
         return render_template('login.html', form=form)
 
-    @app.route('/profile', methods=['POST'])
+    @app.route('/profile')
+    @login_required
     def profile():
-        form = LoginForm()
+        email = current_user.email
+        created_at = current_user.created_at.strftime("%d.%m.%Y")
+        return render_template('profile.html', user_email=email, user_created_at=created_at)
 
-        if form.validate_on_submit():
-            user = User.query.filter(User.email == form.email.data).first()
-            if user and user.check_password(form.password.data):
-                login_user(user)
-                flash('Вы успешно вошли на сайт')
-                return f'<h1> ' \
-                       f'Логин: {user.email} <br> ' \
-                       f'Дата регистрации: {user.created_at.strftime("%d.%m.%Y")}' \
-                       f'</h1>'
-
-        flash('Неверное имя и/или пароль')
-        return redirect(url_for('login', next='profile'))
+    @app.route('/logout')
+    @login_required
+    def logout():
+        logout_user()
+        flash('Вы успешно вышли из аккаунта')
+        return redirect(url_for('index'))
 
     return app
 
