@@ -2,7 +2,6 @@ from flask import Flask, flash, redirect, render_template, url_for
 from flask_login import LoginManager,current_user, login_required, login_user, logout_user
 from webapp.forms import LoginForm, RegistrationForm
 from webapp.model import db, User
-from sqlalchemy.orm.exc import NoResultFound
 
 
 def create_app():
@@ -51,22 +50,20 @@ def create_app():
             return redirect(url_for('profile'))
 
         form = LoginForm()
-        if form.validate_on_submit():
-            user = None
-            try:
-                user = User.query.filter(User.email == form.email.data).one()
-            except NoResultFound:
-                flash('Пользователь с таким email не зарегистрирован')
+        email = form.email.data
+        password = form.password.data
 
+        if form.validate_on_submit():
+            user = User.query.filter(User.email == email).one_or_none()
             if user:
-                if user.check_password(form.password.data):
+                if user.check_password(password):
                     login_user(user)
                     flash('Вы успешно вошли на сайт')
                     return redirect(url_for('profile'))
                 else:
                     flash('Неверный пароль')
-
-            return redirect(url_for('login'))
+            else:
+                flash('Пользователь с таким email не зарегистрирован')
 
         return render_template('login.html', form=form)
 
