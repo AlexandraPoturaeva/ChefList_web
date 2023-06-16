@@ -1,7 +1,8 @@
+from uuid import uuid4
 from flask import Flask, flash, redirect, render_template, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
-from webapp.forms import LoginForm, RegistrationForm
-from webapp.model import db, User
+from webapp.forms import LoginForm, RegistrationForm, CreateListForm
+from webapp.model import db, User, ShoppingList
 
 
 def create_app():
@@ -80,6 +81,31 @@ def create_app():
         logout_user()
         flash('Вы успешно вышли из аккаунта')
         return redirect(url_for('index'))
+
+    @app.route('/my-lists')
+    @login_required
+    def show_my_lists():
+        form = CreateListForm()
+        return render_template('my_lists.html', form=form)
+
+    @app.route('/create-new-list', methods=['GET', 'POST'])
+    def create_new_list():
+        form = CreateListForm()
+        public_id = str(uuid4())
+        user_id = current_user.id
+        if form.validate_on_submit():
+            new_list = ShoppingList(name=form.name.data, user_id=user_id, public_id=public_id)
+            db.session.add(new_list)
+            db.session.commit()
+            flash('Новый список успешно создан')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash('Ошибка в поле "{}": {}'.format(
+                        getattr(form, field).label.text,
+                        error
+                    ))
+        return redirect(url_for('show_my_lists'))
 
     return app
 
