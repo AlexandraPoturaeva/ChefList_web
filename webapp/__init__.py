@@ -1,4 +1,4 @@
-from flask import Flask, flash, redirect, render_template, url_for
+from flask import Flask, flash, redirect, render_template, url_for, request
 from flask_login import (
     LoginManager,
     current_user,
@@ -97,9 +97,17 @@ def create_app():
         form = AddIngredientForm()
         return render_template("add_ingredient.html", form=form)
 
-    @app.route("/add_ingredient", methods=["POST"])
+    @app.route("/add_ingredient", methods=["POST", "GET"])
     @login_required
     def add_ingredient():
+        recipe_id = request.args.get("recipe_id")
+        if request.method == "GET":
+            form = AddIngredientForm()
+            return render_template(
+                "add_ingredient.html", form=form, recipe_id=recipe_id
+            )
+
+        recipe_id = request.args.get("recipe_id")
         form = AddIngredientForm()
         if form.validate_on_submit():
             unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
@@ -123,8 +131,6 @@ def create_app():
                 )
 
             quantity = form.quantity.data
-
-            recipe_id = None  # TODO: подумать, откуда брать соответствующий рецепт
 
             ingredient = Ingredient(
                 product=product_id,
