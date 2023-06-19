@@ -84,5 +84,10 @@ class Ingredient(db.Model):
     unit = db.Column(db.Integer, db.ForeignKey("unit.id"))
     recipe = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
+    def __str__(self):
+        product_name = db.session.query(Product).get(self.product).name
+        unit_name = db.session.query(Unit).get(self.unit).name
+        return f"{product_name}, {self.quantity} {unit_name}"
+
     def __repr__(self):
         return f"<Ingredient: {self.product} for recipe {self.recipe}>"

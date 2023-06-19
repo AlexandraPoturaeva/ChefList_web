@@ -166,9 +166,20 @@ def create_app():
             return redirect(url_for("recipes"))
 
         if request.method == "GET":
+            recipe_name = db.session.query(Recipe).get(recipe_id).name
+            ingredients = (
+                db.session.query(Ingredient)
+                .filter(Ingredient.recipe == recipe_id)
+                .all()
+            )
+            ingredients_str = [str(ingredient) for ingredient in ingredients]
             form = AddIngredientForm()
             return render_template(
-                "add_ingredient.html", recipe_id=recipe_id, form=form
+                "add_ingredient.html",
+                recipe_id=recipe_id,
+                form=form,
+                recipe_name=recipe_name,
+                ingredients=ingredients_str,
             )
 
         form = AddIngredientForm()
@@ -231,7 +242,7 @@ def create_app():
         ingredients = (
             db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
         )
-        to_view["ingredients"] = [repr(ingredient) for ingredient in ingredients]
+        to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
 
     return app
