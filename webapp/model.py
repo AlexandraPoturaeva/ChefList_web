@@ -48,7 +48,7 @@ class RecipeCategory(db.Model):
 
 class Unit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, unique=True)
+    name = db.Column(db.Text, nullable=False, unique=True, index=True)
 
     def __repr__(self):
         return f"<Unit: {self.name}>"
@@ -56,7 +56,7 @@ class Unit(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=False, index=True)
     category = db.Column(db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False)
 
     def __repr__(self):
