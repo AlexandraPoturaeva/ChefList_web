@@ -74,7 +74,7 @@ class Recipe(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
-        return f"<Recipe: {self.name} by {self.user.name}>"
+        return f"<Recipe: {self.name} by user with id {self.user}>"
 
 
 class Ingredient(db.Model):
@@ -85,4 +85,4 @@ class Ingredient(db.Model):
     recipe = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
     def __repr__(self):
-        return f"<Ingredient: {self.product.name} for recipe {self.recipe.name}>"
+        return f"<Ingredient: {self.product} for recipe {self.recipe}>"

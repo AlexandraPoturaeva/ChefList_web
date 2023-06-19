@@ -6,8 +6,17 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm
-from webapp.model import db, User, Ingredient, Product, Unit, ProductCategorie
+from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm, AddRecipeForm
+from webapp.model import (
+    db,
+    User,
+    Ingredient,
+    Product,
+    Unit,
+    ProductCategorie,
+    Recipe,
+    RecipeCategory,
+)
 from webapp.utils import get_id_by_name
 
 
@@ -91,23 +100,77 @@ def create_app():
         flash("Вы успешно вышли из аккаунта")
         return redirect(url_for("index"))
 
-    @app.route("/add_ingredient_page")
-    @login_required
-    def add_ingredient_page():
-        form = AddIngredientForm()
-        return render_template("add_ingredient.html", form=form)
+    @app.route("/recipes")
+    def recipes():
+        return "Страница с рецептами"  # TODO: Сделать реальную страницу
 
-    @app.route("/add_ingredient", methods=["POST", "GET"])
+    @app.route("/add_recipe", methods=["POST", "GET"])
     @login_required
-    def add_ingredient():
-        recipe_id = request.args.get("recipe_id")
+    def add_recipe():
+        if request.method == "GET":
+            form = AddRecipeForm()
+            return render_template("add_recipe.html", form=form)
+
+        form = AddRecipeForm()
+        if form.validate_on_submit():
+            name = form.name.data
+
+            category_id = get_id_by_name(
+                form.category.data, db.session.query(RecipeCategory).all()
+            )
+            if not category_id:
+                category = RecipeCategory(name=form.name.data)
+                db.session.add(category)
+                db.session.commit()
+                category_id = get_id_by_name(
+                    form.category.data, db.session.query(RecipeCategory).all()
+                )
+
+            description = form.description.data
+            preparation_time = form.preparation_time.data
+            cooking_time = form.cooking_time.data
+
+            recipe = Recipe(
+                name=name,
+                user=current_user.id,
+                category=category_id,
+                description=description,
+                preparation_time=preparation_time,
+                cooking_time=cooking_time,
+            )
+            db.session.add(recipe)
+            db.session.commit()
+
+            recipe_id = get_id_by_name(recipe.name, db.session.query(Recipe).all())
+
+            return redirect(url_for("add_ingredient", recipe_id=str(recipe_id)))
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(
+                        'Ошибка в поле "{}": {}'.format(
+                            getattr(form, field).label.text, error
+                        )
+                    )
+        return redirect(url_for("recipe", recipe_id=recipe_id))
+
+    @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
+    @login_required
+    def add_ingredient(recipe_id):
+        print(Recipe.query.all())
+        try:
+            recipe = db.session.query(Recipe).get(recipe_id)
+            print(recipe)
+        except:
+            flash("Неверный идентификатор рецепта")
+            return redirect(url_for("recipes"))
+
         if request.method == "GET":
             form = AddIngredientForm()
             return render_template(
-                "add_ingredient.html", form=form, recipe_id=recipe_id
+                "add_ingredient.html", recipe_id=recipe_id, form=form
             )
 
-        recipe_id = request.args.get("recipe_id")
         form = AddIngredientForm()
         if form.validate_on_submit():
             unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
@@ -122,7 +185,7 @@ def create_app():
             )
             if not product_id:
                 product = Product(
-                    name=form.product.data, category=None
+                    name=form.product.data, category=1
                 )  # TODO: Добавить работу с категориями
                 db.session.add(product)
                 db.session.commit()
@@ -136,13 +199,13 @@ def create_app():
                 product=product_id,
                 quantity=quantity,
                 unit=unit_id,
-                recipe=recipe_id,
+                recipe=recipe.id,
             )
 
             db.session.add(ingredient)
             db.session.commit()
             flash("Ингредиент добавлен", category="info")
-            return redirect(url_for("add_ingredient_page"))
+            return redirect(url_for("add_ingredient", recipe_id=recipe.id))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -151,7 +214,25 @@ def create_app():
                             getattr(form, field).label.text, error
                         )
                     )
-        return redirect(url_for("add_ingredient_page"))
+        return redirect(url_for("add_ingredient", recipe_id=recipe.id))
+
+    @app.route("/recipe/<int:recipe_id>")
+    @login_required
+    def recipe(recipe_id):
+        try:
+            recipe = db.session.query(Recipe).get(recipe_id)
+        except:
+            return redirect(url_for("recipes"))
+        to_view = {}
+        to_view["name"] = recipe.name
+        to_view["description"] = recipe.description
+        to_view["cooking_time"] = recipe.cooking_time
+        to_view["preparation_time"] = recipe.preparation_time
+        ingredients = (
+            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+        )
+        to_view["ingredients"] = [repr(ingredient) for ingredient in ingredients]
+        return render_template("recipe.html", to_view=to_view)
 
     return app
 
