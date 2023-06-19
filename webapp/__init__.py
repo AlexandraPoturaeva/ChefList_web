@@ -8,7 +8,6 @@ from flask_login import (
 )
 from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm
 from webapp.model import db, User, Ingredient, Product, Unit, ProductCategorie
-from webapp.utils import get_id_by_name
 
 
 def create_app():
@@ -110,25 +109,26 @@ def create_app():
         recipe_id = request.args.get("recipe_id")
         form = AddIngredientForm()
         if form.validate_on_submit():
-            unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
-            if not unit_id:
+            unit = Unit.query.filter(Unit.name == form.unit.data)
+            if not unit:
                 unit = Unit(name=form.unit.data)
                 db.session.add(unit)
                 db.session.commit()
-                unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
+                unit_id = Unit.query.filter(Unit.name == form.unit.data).id
+            else:
+                unit_id = unit.id
 
-            product_id = get_id_by_name(
-                form.product.data, db.session.query(Product).all()
-            )
-            if not product_id:
+            product = Product.query.filter(Product.name == form.product.data)
+
+            if not product:
                 product = Product(
                     name=form.product.data, category=None
                 )  # TODO: Добавить работу с категориями
                 db.session.add(product)
                 db.session.commit()
-                product_id = get_id_by_name(
-                    form.product.data, db.session.query(Product).all()
-                )
+                product_id = Product.query.filter(Product.name == form.product.data).id
+            else:
+                product_id = product.id
 
             quantity = form.quantity.data
 
