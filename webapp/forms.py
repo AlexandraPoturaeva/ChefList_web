@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from webapp.model import User
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, HiddenField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 
 
@@ -48,3 +48,10 @@ class CreateListForm(FlaskForm):
                        validators=[DataRequired()],
                        render_kw={"class": "form-control"})
     submit = SubmitField('Создать', render_kw={"class": "btn btn-primary"})
+
+
+class AddShoppingItem(FlaskForm):
+    name = StringField('Название продукта',
+                       validators=[DataRequired()],
+                       render_kw={"class": "form-control"})
+    submit = SubmitField('Добавить', render_kw={"class": "btn btn-primary"})

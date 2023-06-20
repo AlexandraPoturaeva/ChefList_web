@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}<br>
+                    </div>
+            {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="col"></div>
+        <div class="col-6">
+            <div class="p-5"></div>
+            <h2>Мои списки покупок</h2>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-new-list">
+                Создать новый список
+            </button>
+            <div class="p-3"></div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                      <th scope="col">Название</th>
+                      <th scope="col">Дата создания</th>
+                      <th scope="col">Удалить</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for list in user_shopping_lists%}
+                    <tr>
+                        <td><a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}" class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">{{ list.name }}</a></td>
+                        <td>{{ list.created_at.strftime("%d.%m.%Y") }}</td>
+                        <td><button type="button" class="btn-close" aria-label="Удалить"></button></td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
+        </div>
+        <div class="col"></div>
+    </div>
+    <div class="modal fade" id="create-new-list" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="col 12 text-center">
+                        <form action=" {{ url_for('create_new_shopping_list') }}" method="POST">
+                            {{ form.csrf_token }}
+                            <div class="form-floating mb-3">
+                                {{ form.name(placeholder="Название списка") }}
+                                {{ form.name.label(class="form-label") }}
+                            </div>
+                            {{ form.submit }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+</body>
+</html>
