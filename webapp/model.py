@@ -22,10 +22,77 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return f'User {self.id} ' \
-               f'\nemail: {self.email} ' \
-               f'\nname: {self.name}' \
-               f'\ncreated_at {self.created_at}'
+        return (
+            f"User {self.id} "
+            f"\nemail: {self.email} "
+            f"\nname: {self.name}"
+            f"\ncreated_at {self.created_at}"
+        )
+
+
+class ProductCategorie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, unique=True)
+    color = db.Column(db.Text)
+
+    def __repr__(self):
+        return f"<ProductCategory: {self.name}, color: {self.color}>"
+
+
+class RecipeCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, unique=True)
+    color = db.Column(db.Text)
+
+    def __repr__(self):
+        return f"<RecipeCategory: {self.name}, color: {self.color}>"
+
+
+class Unit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, unique=True, index=True)
+
+    def __repr__(self):
+        return f"<Unit: {self.name}>"
+
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, index=True)
+    category = db.Column(db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False)
+
+    def __repr__(self):
+        return f"<Product: {self.name}, category: {self.category}>"
+
+
+class Recipe(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, unique=True)
+    user = db.Column(db.Integer, db.ForeignKey("user.id"))
+    category = db.Column(db.Integer, db.ForeignKey("recipe_category.id"))
+    description = db.Column(db.Text)
+    preparation_time = db.Column(db.Text)
+    cooking_time = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f"<Recipe: {self.name} by user with id {self.user}>"
+
+
+class Ingredient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product = db.Column(db.Integer, db.ForeignKey("product.id"))
+    quantity = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.Integer, db.ForeignKey("unit.id"))
+    recipe = db.Column(db.Integer, db.ForeignKey("recipe.id"))
+
+    def __str__(self):
+        product_name = db.session.query(Product).get(self.product).name
+        unit_name = db.session.query(Unit).get(self.unit).name
+        return f"{product_name}, {self.quantity} {unit_name}"
+
+    def __repr__(self):
+        return f"<Ingredient: {self.product} for recipe {self.recipe}>"
 
 
 class ShoppingList(db.Model):
@@ -45,5 +112,3 @@ class ShoppingItem(db.Model):
     shopping_list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'), nullable=False)
     quantity = db.Column(db.Float)
     selected = db.Column(db.Boolean, default=False)
-
-
