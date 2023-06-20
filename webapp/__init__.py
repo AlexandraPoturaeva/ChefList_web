@@ -1,4 +1,3 @@
-from flask import Flask, flash, redirect, render_template, url_for, request
 from flask_login import (
     LoginManager,
     current_user,
@@ -6,7 +5,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm, AddRecipeForm
+from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm, AddRecipeForm, CreateListForm
 from webapp.model import (
     db,
     User,
@@ -16,8 +15,14 @@ from webapp.model import (
     ProductCategorie,
     Recipe,
     RecipeCategory,
+    ShoppingList,
 )
 from webapp.utils import get_id_by_name
+from uuid import uuid4
+from flask import Flask, flash, redirect, render_template, url_for, request
+
+
+
 
 
 def create_app():
@@ -244,6 +249,43 @@ def create_app():
         )
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
+
+    @app.route('/my-lists')
+    @login_required
+    def show_my_lists():
+        form = CreateListForm()
+        return render_template('my_lists.html', form=form)
+
+    @app.route('/create-new-list', methods=['GET', 'POST'])
+    def create_new_list():
+        form = CreateListForm()
+        public_id = str(uuid4())
+        user_id = current_user.id
+        if form.validate_on_submit():
+            new_list = ShoppingList(name=form.name.data, user_id=user_id, public_id=public_id)
+            db.session.add(new_list)
+            db.session.commit()
+            flash('Новый список успешно создан')
+            return redirect(url_for('show_shopping_list', public_id=public_id))
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash('Ошибка в поле "{}": {}'.format(
+                        getattr(form, field).label.text,
+                        error
+                    ))
+        return redirect(url_for('show_my_lists'))
+
+    @app.route('/my-lists/<public_id>', methods=['GET', 'POST'])
+    @login_required
+    def show_shopping_list(public_id):
+        shopping_list = ShoppingList.query.filter(ShoppingList.public_id == public_id).one_or_none()
+        if shopping_list:
+            page_title = shopping_list.name
+            return render_template('shopping_list.html', page_title=page_title)
+        else:
+            flash('При создании списка возникла ошибка')
+            return redirect(url_for('show_my_lists'))
 
     return app
 
