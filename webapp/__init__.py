@@ -22,9 +22,6 @@ from uuid import uuid4
 from flask import Flask, flash, redirect, render_template, url_for, request
 
 
-
-
-
 def create_app():
     app = Flask(__name__)
     app.config.from_pyfile("config.py")
@@ -44,7 +41,8 @@ def create_app():
     @app.route("/registration")
     def registration():
         form = RegistrationForm()
-        return render_template("registration.html", form=form)
+        title = 'Регистрация'
+        return render_template("registration.html", form=form, page_title=title)
 
     @app.route("/process-reg", methods=["POST"])
     def process_reg():
@@ -94,8 +92,12 @@ def create_app():
     def profile():
         email = current_user.email
         created_at = current_user.created_at.strftime("%d.%m.%Y")
+        title = "Моя страница"
         return render_template(
-            "profile.html", user_email=email, user_created_at=created_at
+            "profile.html",
+            page_title=title,
+            user_email=email,
+            user_created_at=created_at
         )
 
     @app.route("/logout")
@@ -254,7 +256,8 @@ def create_app():
     @login_required
     def show_my_lists():
         form = CreateListForm()
-        return render_template('my_lists.html', form=form)
+        title = "Мои списки покупок"
+        return render_template('my_lists.html', form=form, page_title=title)
 
     @app.route('/create-new-list', methods=['GET', 'POST'])
     def create_new_list():
