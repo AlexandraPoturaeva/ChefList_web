@@ -30,9 +30,9 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField("Зарегистрироваться", render_kw={"class": "btn btn-primary"})
 
     def validate_email(self, email):
-        users_count = User.query.filter_by(email=email.data).count()
+        users_count = User.query.filter_by(email=email.data.lower()).count()
         if users_count > 0:
-            raise ValidationError("пользователь с таким email уже существует")
+            raise ValidationError("Пользователь с таким email уже существует")
 
 
 class LoginForm(FlaskForm):
