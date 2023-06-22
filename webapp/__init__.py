@@ -138,7 +138,6 @@ def create_app():
             db.session.add(new_item)
             db.session.commit()
             flash('Новый продукт успешно добавлен')
-            return redirect(url_for('show_shopping_list', public_id=shopping_list_public_id))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -146,7 +145,25 @@ def create_app():
                         getattr(form, field).label.text,
                         error
                     ))
+
         return redirect(url_for('show_shopping_list', public_id=shopping_list_public_id))
+
+    @app.route('/delete-item/<shopping_list_public_id>/<item_id>')
+    def delete_item_from_shopping_list(shopping_list_public_id, item_id):
+        item_to_delete = ShoppingItem.query.filter(ShoppingItem.id == item_id).one_or_none()
+
+        if item_to_delete:
+            print(item_to_delete)
+            db.session.delete(item_to_delete)
+            db.session.commit()
+            flash('Продукт удалён')
+        else:
+            flash('При удалении продукта возникла ошибка')
+
+        return redirect(url_for(
+            'show_shopping_list',
+            public_id=shopping_list_public_id
+        ))
 
     return app
 
