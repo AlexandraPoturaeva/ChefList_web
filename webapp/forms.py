@@ -55,3 +55,7 @@ class AddShoppingItem(FlaskForm):
                        validators=[DataRequired()],
                        render_kw={"class": "form-control"})
     submit = SubmitField('Добавить', render_kw={"class": "btn btn-primary"})
+
+
+class SelectShoppingItem(FlaskForm):
+    select = BooleanField('Вычеркнуть', default=False, render_kw={"class": "form-check-input"})
