@@ -5,7 +5,13 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm, AddRecipeForm, CreateListForm
+from webapp.forms import (
+    LoginForm,
+    RegistrationForm,
+    AddIngredientForm,
+    AddRecipeForm,
+    CreateListForm,
+)
 from webapp.model import (
     db,
     User,
@@ -20,9 +26,6 @@ from webapp.model import (
 from webapp.utils import get_id_by_name
 from uuid import uuid4
 from flask import Flask, flash, redirect, render_template, url_for, request
-
-
-
 
 
 def create_app():
@@ -170,6 +173,16 @@ def create_app():
             flash("Неверный идентификатор рецепта")
             return redirect(url_for("recipes"))
 
+        to_view = {}
+        to_view["name"] = recipe.name
+        to_view["description"] = recipe.description
+        to_view["cooking_time"] = recipe.cooking_time
+        to_view["preparation_time"] = recipe.preparation_time
+        ingredients = (
+            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+        )
+        to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
+
         if request.method == "GET":
             recipe_name = db.session.query(Recipe).get(recipe_id).name
             ingredients = (
@@ -185,6 +198,7 @@ def create_app():
                 form=form,
                 recipe_name=recipe_name,
                 ingredients=ingredients_str,
+                to_view=to_view,
             )
 
         form = AddIngredientForm()
@@ -221,7 +235,9 @@ def create_app():
             db.session.add(ingredient)
             db.session.commit()
             flash("Ингредиент добавлен", category="info")
-            return redirect(url_for("add_ingredient", recipe_id=recipe.id))
+            return redirect(
+                url_for("add_ingredient", recipe_id=recipe.id, to_view=to_view)
+            )
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -230,7 +246,7 @@ def create_app():
                             getattr(form, field).label.text, error
                         )
                     )
-        return redirect(url_for("add_ingredient", recipe_id=recipe.id))
+        return redirect(url_for("add_ingredient", recipe_id=recipe.id, to_view=to_view))
 
     @app.route("/recipe/<int:recipe_id>")
     @login_required
@@ -250,42 +266,47 @@ def create_app():
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
 
-    @app.route('/my-lists')
+    @app.route("/my-lists")
     @login_required
     def show_my_lists():
         form = CreateListForm()
-        return render_template('my_lists.html', form=form)
+        return render_template("my_lists.html", form=form)
 
-    @app.route('/create-new-list', methods=['GET', 'POST'])
+    @app.route("/create-new-list", methods=["GET", "POST"])
     def create_new_list():
         form = CreateListForm()
         public_id = str(uuid4())
         user_id = current_user.id
         if form.validate_on_submit():
-            new_list = ShoppingList(name=form.name.data, user_id=user_id, public_id=public_id)
+            new_list = ShoppingList(
+                name=form.name.data, user_id=user_id, public_id=public_id
+            )
             db.session.add(new_list)
             db.session.commit()
-            flash('Новый список успешно создан')
-            return redirect(url_for('show_shopping_list', public_id=public_id))
+            flash("Новый список успешно создан")
+            return redirect(url_for("show_shopping_list", public_id=public_id))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
-                    flash('Ошибка в поле "{}": {}'.format(
-                        getattr(form, field).label.text,
-                        error
-                    ))
-        return redirect(url_for('show_my_lists'))
+                    flash(
+                        'Ошибка в поле "{}": {}'.format(
+                            getattr(form, field).label.text, error
+                        )
+                    )
+        return redirect(url_for("show_my_lists"))
 
-    @app.route('/my-lists/<public_id>', methods=['GET', 'POST'])
+    @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     @login_required
     def show_shopping_list(public_id):
-        shopping_list = ShoppingList.query.filter(ShoppingList.public_id == public_id).one_or_none()
+        shopping_list = ShoppingList.query.filter(
+            ShoppingList.public_id == public_id
+        ).one_or_none()
         if shopping_list:
             page_title = shopping_list.name
-            return render_template('shopping_list.html', page_title=page_title)
+            return render_template("shopping_list.html", page_title=page_title)
         else:
-            flash('При создании списка возникла ошибка')
-            return redirect(url_for('show_my_lists'))
+            flash("При создании списка возникла ошибка")
+            return redirect(url_for("show_my_lists"))
 
     return app
 
