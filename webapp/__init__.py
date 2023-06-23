@@ -50,12 +50,15 @@ def create_app():
     def process_reg():
         form = RegistrationForm()
         if form.validate_on_submit():
-            new_user = User(name=form.name.data, email=form.email.data)
+            user_name = form.name.data
+            user_email = form.email.data.lower()
+            new_user = User(name=user_name, email=user_email)
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
             flash("Вы успешно зарегистрировались")
             return redirect(url_for("index"))
+
         else:
             for field, errors in form.errors.items():
                 for error in errors:
