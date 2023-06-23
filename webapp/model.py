@@ -7,13 +7,13 @@ db = SQLAlchemy()
 
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'user'
+    __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.Text, nullable=False, unique=True)
     password_hash = db.Column(db.Text, nullable=False)
     name = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    shopping_lists = db.relationship('ShoppingList', backref='user', lazy=True)
+    shopping_lists = db.relationship("ShoppingList", backref="user", lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -58,8 +58,10 @@ class Unit(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, index=True)
-    category = db.Column(db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False)
+    name = db.Column(db.Text, nullable=False, index=True, unique=True)
+    category_id = db.Column(
+        db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False
+    )
 
     def __repr__(self):
         return f"<Product: {self.name}, category: {self.category}>"
@@ -67,9 +69,9 @@ class Product(db.Model):
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, unique=True)
-    user = db.Column(db.Integer, db.ForeignKey("user.id"))
-    category = db.Column(db.Integer, db.ForeignKey("recipe_category.id"))
+    name = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    category_id = db.Column(db.Integer, db.ForeignKey("recipe_category.id"))
     description = db.Column(db.Text)
     preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
@@ -81,10 +83,10 @@ class Recipe(db.Model):
 
 class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    product = db.Column(db.Integer, db.ForeignKey("product.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"))
     quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.Integer, db.ForeignKey("unit.id"))
-    recipe = db.Column(db.Integer, db.ForeignKey("recipe.id"))
+    unit_id = db.Column(db.Integer, db.ForeignKey("unit.id"))
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
     def __str__(self):
         product_name = db.session.query(Product).get(self.product).name
@@ -96,19 +98,21 @@ class Ingredient(db.Model):
 
 
 class ShoppingList(db.Model):
-    __tablename__ = 'shopping_list'
+    __tablename__ = "shopping_list"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    shopping_items = db.relationship('ShoppingItem', backref='shopping_list', lazy=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    shopping_items = db.relationship("ShoppingItem", backref="shopping_list", lazy=True)
     public_id = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 
 class ShoppingItem(db.Model):
-    __tablename__ = 'shopping_item'
+    __tablename__ = "shopping_item"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
-    shopping_list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'), nullable=False)
+    shopping_list_id = db.Column(
+        db.Integer, db.ForeignKey("shopping_list.id"), nullable=False
+    )
     quantity = db.Column(db.Float)
     selected = db.Column(db.Boolean, default=False)
