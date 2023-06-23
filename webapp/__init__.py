@@ -290,7 +290,7 @@ def create_app():
                         ),
                         category='danger'
                     )
-        return redirect(url_for('show_my_lists'))
+        return redirect(url_for('show_my_shopping_lists'))
 
     @app.route('/my-lists/<public_id>', methods=['GET', 'POST'])
     @login_required
@@ -319,13 +319,14 @@ def create_app():
             new_item = ShoppingItem(name=form.name.data, shopping_list_id=shopping_list_id)
             db.session.add(new_item)
             db.session.commit()
-            flash('Новый продукт успешно добавлен')
+            flash('Новый продукт успешно добавлен', category='success')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     flash('Ошибка в поле "{}": {}'.format(
                         getattr(form, field).label.text,
-                        error
+                        error,
+                        category='danger'
                     ))
 
         return redirect(url_for('show_shopping_list', public_id=shopping_list_public_id))
@@ -338,9 +339,9 @@ def create_app():
             print(item_to_delete)
             db.session.delete(item_to_delete)
             db.session.commit()
-            flash('Продукт удалён')
+            flash('Продукт удалён', category='success')
         else:
-            flash('При удалении продукта возникла ошибка')
+            flash('При удалении продукта возникла ошибка', category='danger')
 
         return redirect(url_for(
             'show_shopping_list',
