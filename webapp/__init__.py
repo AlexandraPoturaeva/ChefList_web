@@ -22,9 +22,6 @@ from uuid import uuid4
 from flask import Flask, flash, redirect, render_template, url_for, request
 
 
-
-
-
 def create_app():
     app = Flask(__name__)
     app.config.from_pyfile("config.py")
@@ -44,7 +41,8 @@ def create_app():
     @app.route("/registration")
     def registration():
         form = RegistrationForm()
-        return render_template("registration.html", form=form)
+        title = 'Регистрация'
+        return render_template("registration.html", form=form, page_title=title)
 
     @app.route("/process-reg", methods=["POST"])
     def process_reg():
@@ -56,7 +54,7 @@ def create_app():
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
-            flash("Вы успешно зарегистрировались")
+            flash("Вы успешно зарегистрировались", category='success')
             return redirect(url_for("index"))
 
         else:
@@ -65,7 +63,8 @@ def create_app():
                     flash(
                         'Ошибка в поле "{}": {}'.format(
                             getattr(form, field).label.text, error
-                        )
+                        ),
+                        category='danger'
                     )
         return redirect(url_for("registration"))
 
@@ -83,12 +82,15 @@ def create_app():
             if user:
                 if user.check_password(password):
                     login_user(user)
-                    flash("Вы успешно вошли на сайт")
+                    flash("Вы успешно вошли на сайт", category='success')
                     return redirect(url_for("profile"))
                 else:
-                    flash("Неверный пароль")
+                    flash("Неверный пароль", category='danger')
             else:
-                flash("Пользователь с таким email не зарегистрирован")
+                flash(
+                    "Пользователь с таким email не зарегистрирован",
+                    category='danger'
+                )
 
         return render_template("login.html", form=form)
 
@@ -97,15 +99,19 @@ def create_app():
     def profile():
         email = current_user.email
         created_at = current_user.created_at.strftime("%d.%m.%Y")
+        title = "Моя страница"
         return render_template(
-            "profile.html", user_email=email, user_created_at=created_at
+            "profile.html",
+            page_title=title,
+            user_email=email,
+            user_created_at=created_at
         )
 
     @app.route("/logout")
     @login_required
     def logout():
         logout_user()
-        flash("Вы успешно вышли из аккаунта")
+        flash("Вы успешно вышли из аккаунта", category='success')
         return redirect(url_for("index"))
 
     @app.route("/recipes")
@@ -257,7 +263,8 @@ def create_app():
     @login_required
     def show_my_lists():
         form = CreateListForm()
-        return render_template('my_lists.html', form=form)
+        title = "Мои списки покупок"
+        return render_template('my_lists.html', form=form, page_title=title)
 
     @app.route('/create-new-list', methods=['GET', 'POST'])
     def create_new_list():
@@ -268,15 +275,18 @@ def create_app():
             new_list = ShoppingList(name=form.name.data, user_id=user_id, public_id=public_id)
             db.session.add(new_list)
             db.session.commit()
-            flash('Новый список успешно создан')
+            flash('Новый список успешно создан', category='success')
             return redirect(url_for('show_shopping_list', public_id=public_id))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
-                    flash('Ошибка в поле "{}": {}'.format(
-                        getattr(form, field).label.text,
-                        error
-                    ))
+                    flash(
+                        'Ошибка в поле "{}": {}'.format(
+                            getattr(form, field).label.text,
+                            error
+                        ),
+                        category='danger'
+                    )
         return redirect(url_for('show_my_lists'))
 
     @app.route('/my-lists/<public_id>', methods=['GET', 'POST'])
@@ -287,7 +297,7 @@ def create_app():
             page_title = shopping_list.name
             return render_template('shopping_list.html', page_title=page_title)
         else:
-            flash('При создании списка возникла ошибка')
+            flash('При создании списка возникла ошибка', category='danger')
             return redirect(url_for('show_my_lists'))
 
     return app
