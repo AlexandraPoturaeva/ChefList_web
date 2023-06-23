@@ -5,7 +5,14 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from webapp.forms import LoginForm, RegistrationForm, AddIngredientForm, AddRecipeForm, CreateListForm, AddShoppingItem
+from webapp.forms import (
+    LoginForm,
+    RegistrationForm,
+    AddIngredientForm,
+    AddRecipeForm,
+    CreateListForm,
+    AddShoppingItem,
+)
 from webapp.model import (
     db,
     User,
@@ -16,7 +23,7 @@ from webapp.model import (
     Recipe,
     RecipeCategory,
     ShoppingList,
-    ShoppingItem
+    ShoppingItem,
 )
 from webapp.utils import get_id_by_name
 from uuid import uuid4
@@ -42,7 +49,7 @@ def create_app():
     @app.route("/registration")
     def registration():
         form = RegistrationForm()
-        title = 'Регистрация'
+        title = "Регистрация"
         return render_template("registration.html", form=form, page_title=title)
 
     @app.route("/process-reg", methods=["POST"])
@@ -55,7 +62,7 @@ def create_app():
             new_user.set_password(form.password.data)
             db.session.add(new_user)
             db.session.commit()
-            flash("Вы успешно зарегистрировались", category='success')
+            flash("Вы успешно зарегистрировались", category="success")
             return redirect(url_for("index"))
 
         else:
@@ -65,7 +72,7 @@ def create_app():
                         'Ошибка в поле "{}": {}'.format(
                             getattr(form, field).label.text, error
                         ),
-                        category='danger'
+                        category="danger",
                     )
         return redirect(url_for("registration"))
 
@@ -83,14 +90,13 @@ def create_app():
             if user:
                 if user.check_password(password):
                     login_user(user)
-                    flash("Вы успешно вошли на сайт", category='success')
+                    flash("Вы успешно вошли на сайт", category="success")
                     return redirect(url_for("profile"))
                 else:
-                    flash("Неверный пароль", category='danger')
+                    flash("Неверный пароль", category="danger")
             else:
                 flash(
-                    "Пользователь с таким email не зарегистрирован",
-                    category='danger'
+                    "Пользователь с таким email не зарегистрирован", category="danger"
                 )
 
         return render_template("login.html", form=form)
@@ -105,14 +111,14 @@ def create_app():
             "profile.html",
             page_title=title,
             user_email=email,
-            user_created_at=created_at
+            user_created_at=created_at,
         )
 
     @app.route("/logout")
     @login_required
     def logout():
         logout_user()
-        flash("Вы успешно вышли из аккаунта", category='success')
+        flash("Вы успешно вышли из аккаунта", category="success")
         return redirect(url_for("index"))
 
     @app.route("/recipes")
@@ -260,93 +266,115 @@ def create_app():
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
 
-    @app.route('/my-lists')
+    @app.route("/my-lists")
     @login_required
     def show_my_shopping_lists():
         form = CreateListForm()
         user_id = current_user.id
-        user_shopping_lists = ShoppingList.query.filter(ShoppingList.user_id == user_id).all()
+        user_shopping_lists = ShoppingList.query.filter(
+            ShoppingList.user_id == user_id
+        ).all()
         title = "Мои списки покупок"
-        return render_template('my_shopping_lists.html', form=form, user_shopping_lists=user_shopping_lists, page_title=title)
+        return render_template(
+            "my_shopping_lists.html",
+            form=form,
+            user_shopping_lists=user_shopping_lists,
+            page_title=title,
+        )
 
-    @app.route('/create-new-list', methods=['GET', 'POST'])
+    @app.route("/create-new-list", methods=["GET", "POST"])
     def create_new_shopping_list():
         form = CreateListForm()
         public_id = str(uuid4())
         user_id = current_user.id
         if form.validate_on_submit():
-            new_shopping_list = ShoppingList(name=form.name.data, user_id=user_id, public_id=public_id)
+            new_shopping_list = ShoppingList(
+                name=form.name.data, user_id=user_id, public_id=public_id
+            )
             db.session.add(new_shopping_list)
             db.session.commit()
-            flash('Новый список успешно создан', category='success')
-            return redirect(url_for('show_shopping_list', public_id=public_id))
+            flash("Новый список успешно создан", category="success")
+            return redirect(url_for("show_shopping_list", public_id=public_id))
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     flash(
                         'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text,
-                            error
+                            getattr(form, field).label.text, error
                         ),
-                        category='danger'
+                        category="danger",
                     )
-        return redirect(url_for('show_my_shopping_lists'))
+        return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route('/my-lists/<public_id>', methods=['GET', 'POST'])
+    @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     @login_required
     def show_shopping_list(public_id):
         form = AddShoppingItem()
-        shopping_list = ShoppingList.query.filter(ShoppingList.public_id == public_id).one_or_none()
+        shopping_list = ShoppingList.query.filter(
+            ShoppingList.public_id == public_id
+        ).one_or_none()
         shopping_list_id = shopping_list.id
-        shopping_items = ShoppingItem.query.filter(ShoppingItem.shopping_list_id == shopping_list_id).all()
+        shopping_items = ShoppingItem.query.filter(
+            ShoppingItem.shopping_list_id == shopping_list_id
+        ).all()
         if shopping_list:
             page_title = shopping_list.name
-            return render_template('shopping_list.html',
-                                   page_title=page_title,
-                                   form=form,
-                                   shopping_list_public_id=public_id,
-                                   shopping_items=shopping_items)
+            return render_template(
+                "shopping_list.html",
+                page_title=page_title,
+                form=form,
+                shopping_list_public_id=public_id,
+                shopping_items=shopping_items,
+            )
         else:
-            flash('При создании списка возникла ошибка', category='danger')
-            return redirect(url_for('show_my_shopping_lists'))
+            flash("При создании списка возникла ошибка", category="danger")
+            return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route('/add-item/<shopping_list_public_id>', methods=['GET', 'POST'])
+    @app.route("/add-item/<shopping_list_public_id>", methods=["GET", "POST"])
     def add_item_to_shopping_list(shopping_list_public_id):
         form = AddShoppingItem()
         if form.validate_on_submit():
-            shopping_list = ShoppingList.query.filter(ShoppingList.public_id == shopping_list_public_id).one_or_none()
+            shopping_list = ShoppingList.query.filter(
+                ShoppingList.public_id == shopping_list_public_id
+            ).one_or_none()
             shopping_list_id = shopping_list.id
-            new_item = ShoppingItem(name=form.name.data, shopping_list_id=shopping_list_id)
+            new_item = ShoppingItem(
+                name=form.name.data, shopping_list_id=shopping_list_id
+            )
             db.session.add(new_item)
             db.session.commit()
-            flash('Новый продукт успешно добавлен', category='success')
+            flash("Новый продукт успешно добавлен", category="success")
         else:
             for field, errors in form.errors.items():
                 for error in errors:
-                    flash('Ошибка в поле "{}": {}'.format(
-                        getattr(form, field).label.text,
-                        error,
-                        category='danger'
-                    ))
+                    flash(
+                        'Ошибка в поле "{}": {}'.format(
+                            getattr(form, field).label.text, error, category="danger"
+                        )
+                    )
 
-        return redirect(url_for('show_shopping_list', public_id=shopping_list_public_id))
+        return redirect(
+            url_for("show_shopping_list", public_id=shopping_list_public_id)
+        )
 
-    @app.route('/delete-item/<shopping_list_public_id>/<item_id>')
+    @app.route("/delete-item/<shopping_list_public_id>/<item_id>")
     def delete_item_from_shopping_list(shopping_list_public_id, item_id):
-        item_to_delete = ShoppingItem.query.filter(ShoppingItem.id == item_id).one_or_none()
+        item_to_delete = ShoppingItem.query.filter(
+            ShoppingItem.id == item_id
+        ).one_or_none()
 
         if item_to_delete:
             print(item_to_delete)
             db.session.delete(item_to_delete)
             db.session.commit()
-            flash('Продукт удалён', category='success')
+            flash("Продукт удалён", category="success")
         else:
-            flash('При удалении продукта возникла ошибка', category='danger')
+            flash("При удалении продукта возникла ошибка", category="danger")
 
-        return redirect(url_for(
-            'show_shopping_list',
-            public_id=shopping_list_public_id
-        ))
+        return redirect(
+            url_for("show_shopping_list", public_id=shopping_list_public_id)
+        )
+
     return app
 
 
