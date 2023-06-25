@@ -102,10 +102,20 @@ class AddRecipeForm(FlaskForm):
         "Создать рецепт", render_kw={"class": "btn btn-primary w-100 py-2"}
     )
 
-    
-class CreateListForm(FlaskForm):
-    name = StringField('Название списка',
-                       validators=[DataRequired()],
-                       render_kw={"class": "form-control"})
-    submit = SubmitField('Создать', render_kw={"class": "btn btn-primary"})
 
+class CreateListForm(FlaskForm):
+    name = StringField(
+        "Название списка",
+        validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+    submit = SubmitField("Создать", render_kw={"class": "btn btn-primary"})
+
+
+class AddShoppingItem(FlaskForm):
+    name = StringField(
+        "Название продукта",
+        validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+    submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
