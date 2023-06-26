@@ -364,7 +364,6 @@ def create_app():
         ).one_or_none()
 
         if item_to_delete:
-            print(item_to_delete)
             db.session.delete(item_to_delete)
             db.session.commit()
             flash("Продукт удалён", category="success")
