@@ -102,7 +102,9 @@ class ShoppingList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    shopping_items = db.relationship("ShoppingItem", backref="shopping_list", lazy=True)
+    shopping_items = db.relationship(
+        "ShoppingItem", backref="shopping_list", lazy=True, cascade="all, delete"
+    )
     public_id = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 

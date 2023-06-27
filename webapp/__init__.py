@@ -306,9 +306,20 @@ def create_app():
                     )
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/delete-shopping-list", methods=["GET", "POST"])
-    def delete_shopping_list():
-        pass
+    @app.route("/delete-shopping-list/<shopping_list_id>", methods=["GET", "POST"])
+    def delete_shopping_list(shopping_list_id):
+        shopping_list_to_delete = ShoppingList.query.filter(
+            ShoppingList.id == shopping_list_id
+        ).one_or_none()
+
+        if shopping_list_to_delete:
+            db.session.delete(shopping_list_to_delete)
+            db.session.commit()
+            flash("Список удалён", category="success")
+        else:
+            flash("При удалении списка возникла ошибка", category="danger")
+
+        return redirect(url_for("show_my_shopping_lists"))
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     @login_required

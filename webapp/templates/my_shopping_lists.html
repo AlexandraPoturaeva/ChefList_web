@@ -40,6 +40,10 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a class="btn"
                            role="button"
+                           href="{{
+                                       url_for('delete_shopping_list',
+                                       shopping_list_id = list.id)
+                                       }}"
                            data-toggle="tooltip"
                            data-placement="right"
                            title="Удалить">
