@@ -30,6 +30,15 @@ from uuid import uuid4
 from flask import Flask, flash, redirect, render_template, url_for, request
 
 
+def flash_errors_from_form(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(
+                'Ошибка в поле "{}": {}'.format(getattr(form, field).label.text, error),
+                category="danger",
+            )
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_pyfile("config.py")
@@ -66,14 +75,7 @@ def create_app():
             return redirect(url_for("index"))
 
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        ),
-                        category="danger",
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("registration"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -166,13 +168,7 @@ def create_app():
 
             return redirect(url_for("add_ingredient", recipe_id=str(recipe_id)))
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        )
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("recipe", recipe_id=recipe_id))
 
     @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
@@ -239,13 +235,7 @@ def create_app():
             flash("Ингредиент добавлен", category="info")
             return redirect(url_for("add_ingredient", recipe_id=recipe.id))
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        )
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("add_ingredient", recipe_id=recipe.id))
 
     @app.route("/recipe/<int:recipe_id>")
@@ -296,14 +286,7 @@ def create_app():
             flash("Новый список успешно создан", category="success")
             return redirect(url_for("show_shopping_list", public_id=public_id))
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        ),
-                        category="danger",
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("show_my_shopping_lists"))
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
@@ -345,13 +328,7 @@ def create_app():
             db.session.commit()
             flash("Новый продукт успешно добавлен", category="success")
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error, category="danger"
-                        )
-                    )
+            flash_errors_from_form(form)
 
         return redirect(
             url_for("show_shopping_list", public_id=shopping_list_public_id)
