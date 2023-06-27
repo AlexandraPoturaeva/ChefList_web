@@ -1,50 +1,79 @@
 {% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/sorting/datetime-moment.js"></script>
+<script src="{{url_for('static', filename='my_shopping_lists.js')}}"></script>
+{% endblock %}
+
 {% block content %}
-    <div class="row">
-        <div class="col"></div>
-        <div class="col-6">
-            <h2>Мои списки покупок</h2>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-new-list">
-                Создать новый список
-            </button>
-            <div class="p-3"></div>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                      <th scope="col">Название</th>
-                      <th scope="col">Дата создания</th>
-                      <th scope="col">Удалить</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {%for list in user_shopping_lists%}
-                    <tr>
-                        <td><a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}" class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">{{ list.name }}</a></td>
-                        <td>{{ list.created_at.strftime("%d.%m.%Y") }}</td>
-                        <td><button type="button" class="btn-close" aria-label="Удалить"></button></td>
-                    </tr>
-                    {%endfor%}
-                </tbody>
-            </table>
-        </div>
-        <div class="col"></div>
-    </div>
-    <div class="modal fade" id="create-new-list" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="col 12 text-center">
-                        <form action=" {{ url_for('create_new_shopping_list') }}" method="POST">
-                            {{ form.csrf_token }}
-                            <div class="form-floating mb-3">
-                                {{ form.name(placeholder="Название списка") }}
-                                {{ form.name.label(class="form-label") }}
-                            </div>
-                            {{ form.submit }}
-                        </form>
+<div class="row">
+    <div class="col"></div>
+    <div class="col-5">
+        <h2>Мои списки покупок</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-new-list">
+            Создать новый список
+        </button>
+        <div class="p-3"></div>
+        <table id='my_shopping_lists' class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">Название</th>
+                <th scope="col">Дата создания</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {%for list in user_shopping_lists%}
+            <tr>
+                <td class="align-middle">
+                    <a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}"
+                       class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">{{
+                    list.name }}</a></td>
+                <td class="align-middle">{{ list.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a class="btn"
+                           role="button"
+                           data-toggle="tooltip"
+                           data-placement="right"
+                           title="Удалить">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                 fill="currentColor"
+                                 class="bi bi-trash3" viewBox="0 0 16 16">
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
+                            </svg>
+                        </a>
                     </div>
+                </td>
+            </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+    <div class="col"></div>
+</div>
+<div class="modal fade" id="create-new-list" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="col 12 text-center">
+                    <form action=" {{ url_for('create_new_shopping_list') }}" method="POST">
+                        {{ form.csrf_token }}
+                        <div class="form-floating mb-3">
+                            {{ form.name(placeholder="Название списка") }}
+                            {{ form.name.label(class="form-label") }}
+                        </div>
+                        {{ form.submit }}
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
