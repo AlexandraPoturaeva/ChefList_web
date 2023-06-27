@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -9,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
 <script src="https://cdn.datatables.net/plug-ins/1.13.4/sorting/datetime-moment.js"></script>
 <script src="{{url_for('static', filename='my_shopping_lists.js')}}"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -26,6 +26,7 @@
                 <th scope="col">Название</th>
                 <th scope="col">Дата создания</th>
                 <th scope="col"></th>
+                <th scope="col"></th>
             </tr>
             </thead>
             <tbody>
@@ -34,10 +35,27 @@
                 <td class="align-middle">
                     <a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}"
                        class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">{{
-                    list.name }}</a></td>
+                        list.name }}</a></td>
                 <td class="align-middle">{{ list.created_at.strftime("%d.%m.%Y") }}</td>
                 <td>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-middle">
+                        <a class="btn"
+                           role="button"
+                           onclick="copy('{{list.public_id}}','#copy_button')"
+                           id="copy_button"
+                           data-toggle="tooltip"
+                           data-placement="right"
+                           title="Копировать ссылку">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-link" viewBox="0 0 16 16">
+                                <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
+                                <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-middle">
                         <a class="btn"
                            role="button"
                            data-toggle="tooltip"
