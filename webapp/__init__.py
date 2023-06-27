@@ -306,6 +306,10 @@ def create_app():
                     )
         return redirect(url_for("show_my_shopping_lists"))
 
+    @app.route("/delete-shopping-list", methods=["GET", "POST"])
+    def delete_shopping_list():
+        pass
+
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     @login_required
     def show_shopping_list(public_id):
