@@ -1,3 +1,4 @@
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -8,6 +9,7 @@ from flask_login import (
 from webapp.forms import (
     LoginForm,
     RegistrationForm,
+    RenameShoppingList,
     AddIngredientForm,
     AddRecipeForm,
     CreateListForm,
@@ -27,7 +29,6 @@ from webapp.model import (
 )
 from webapp.utils import get_id_by_name
 from uuid import uuid4
-from flask import Flask, flash, redirect, render_template, url_for, request
 
 
 def flash_errors_from_form(form):
@@ -259,7 +260,9 @@ def create_app():
     @app.route("/my-lists")
     @login_required
     def show_my_shopping_lists():
+        session["url"] = url_for("show_my_shopping_lists")
         form = CreateListForm()
+        form_2 = RenameShoppingList()
         user_id = current_user.id
         user_shopping_lists = ShoppingList.query.filter(
             ShoppingList.user_id == user_id
@@ -268,6 +271,7 @@ def create_app():
         return render_template(
             "my_shopping_lists.html",
             form=form,
+            form_2=form_2,
             user_shopping_lists=user_shopping_lists,
             page_title=title,
         )
@@ -304,11 +308,24 @@ def create_app():
 
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route(
-        "/change-name-of-shopping-list/<shopping_list_id>", methods=["GET", "POST"]
-    )
-    def change_name_of_shopping_list(shopping_list_id):
-        pass
+    @app.route("/rename-shopping-list/", methods=["POST"])
+    def rename_shopping_list():
+        form = RenameShoppingList()
+
+        if form.validate_on_submit():
+            new_name = form.new_name.data
+            shopping_list_id = form.shopping_list_id.data
+            shopping_list_to_rename = ShoppingList.query.filter(
+                ShoppingList.id == shopping_list_id
+            ).one_or_none()
+            shopping_list_to_rename.name = new_name
+            db.session.commit()
+            flash("Список переименован", category="success")
+
+        else:
+            flash_errors_from_form(form)
+
+        return redirect(session["url"])
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     def show_shopping_list(public_id):
