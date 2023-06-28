@@ -304,8 +304,13 @@ def create_app():
 
         return redirect(url_for("show_my_shopping_lists"))
 
+    @app.route(
+        "/change-name-of-shopping-list/<shopping_list_id>", methods=["GET", "POST"]
+    )
+    def change_name_of_shopping_list(shopping_list_id):
+        pass
+
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
-    @login_required
     def show_shopping_list(public_id):
         form = AddShoppingItem()
         shopping_list = ShoppingList.query.filter(
