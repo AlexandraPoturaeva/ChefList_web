@@ -41,8 +41,8 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-middle">
                         <a class="btn"
                            role="button"
-                           onclick="copy('{{list.public_id}}','#copy_button')"
-                           id="copy_button"
+                           onclick="copy('/{{list.public_id}}','#copy_button_{{list.id}}')"
+                           id="copy_button_{{list.id}}"
                            data-toggle="tooltip"
                            data-placement="right"
                            title="Копировать ссылку">
