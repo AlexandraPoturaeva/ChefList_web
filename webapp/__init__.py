@@ -329,7 +329,9 @@ def create_app():
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     def show_shopping_list(public_id):
+        session["url"] = url_for("show_shopping_list", public_id=public_id)
         form = AddShoppingItem()
+        form_2 = RenameShoppingList()
         shopping_list = ShoppingList.query.filter(
             ShoppingList.public_id == public_id
         ).one_or_none()
@@ -343,6 +345,8 @@ def create_app():
                 "shopping_list.html",
                 page_title=page_title,
                 form=form,
+                form_2=form_2,
+                shopping_list_id=shopping_list_id,
                 shopping_list_public_id=public_id,
                 shopping_items=shopping_items,
             )
