@@ -30,9 +30,9 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField("Зарегистрироваться", render_kw={"class": "btn btn-primary"})
 
     def validate_email(self, email):
-        users_count = User.query.filter_by(email=email.data).count()
+        users_count = User.query.filter_by(email=email.data.lower()).count()
         if users_count > 0:
-            raise ValidationError("пользователь с таким email уже существует")
+            raise ValidationError("Пользователь с таким email уже существует")
 
 
 class LoginForm(FlaskForm):
@@ -102,10 +102,20 @@ class AddRecipeForm(FlaskForm):
         "Создать рецепт", render_kw={"class": "btn btn-primary w-100 py-2"}
     )
 
-    
-class CreateListForm(FlaskForm):
-    name = StringField('Название списка',
-                       validators=[DataRequired()],
-                       render_kw={"class": "form-control"})
-    submit = SubmitField('Создать', render_kw={"class": "btn btn-primary"})
 
+class CreateListForm(FlaskForm):
+    name = StringField(
+        "Название списка",
+        validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+    submit = SubmitField("Создать", render_kw={"class": "btn btn-primary"})
+
+
+class AddShoppingItem(FlaskForm):
+    name = StringField(
+        "Название продукта",
+        validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+    submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
