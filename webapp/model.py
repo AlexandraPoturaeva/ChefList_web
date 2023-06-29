@@ -58,8 +58,10 @@ class Unit(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, index=True)
-    category = db.Column(db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False)
+    name = db.Column(db.Text, nullable=False, index=True, unique=True)
+    category_id = db.Column(
+        db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False
+    )
 
     def __repr__(self):
         return f"<Product: {self.name}, category: {self.category}>"
@@ -67,9 +69,9 @@ class Product(db.Model):
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, unique=True)
-    user = db.Column(db.Integer, db.ForeignKey("user.id"))
-    category = db.Column(db.Integer, db.ForeignKey("recipe_category.id"))
+    name = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    category_id = db.Column(db.Integer, db.ForeignKey("recipe_category.id"))
     description = db.Column(db.Text)
     preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
@@ -81,10 +83,10 @@ class Recipe(db.Model):
 
 class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    product = db.Column(db.Integer, db.ForeignKey("product.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"))
     quantity = db.Column(db.Float, nullable=False)
-    unit = db.Column(db.Integer, db.ForeignKey("unit.id"))
-    recipe = db.Column(db.Integer, db.ForeignKey("recipe.id"))
+    unit_id = db.Column(db.Integer, db.ForeignKey("unit.id"))
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
     def __str__(self):
         product_name = db.session.query(Product).get(self.product).name
@@ -100,7 +102,9 @@ class ShoppingList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    shopping_items = db.relationship("ShoppingItem", backref="shopping_list", lazy=True)
+    shopping_items = db.relationship(
+        "ShoppingItem", backref="shopping_list", lazy=True, cascade="all, delete"
+    )
     public_id = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
