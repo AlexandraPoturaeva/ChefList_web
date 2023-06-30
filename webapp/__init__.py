@@ -344,11 +344,10 @@ def create_app():
         else:
             flash_errors_from_form(form)
 
-        redirect_url = session.get("redirect_url_after_renaming_shopping_list")
-
-        if not redirect_url:
-            return redirect(url_for("show_my_shopping_lists"))
-
+        redirect_url = session.get(
+            "redirect_url_after_renaming_shopping_list",
+            url_for("show_my_shopping_lists"),
+        )
         return redirect(redirect_url)
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
