@@ -183,6 +183,16 @@ def create_app():
             flash("Неверный идентификатор рецепта")
             return redirect(url_for("recipes"))
 
+        to_view = {}
+        to_view["name"] = recipe.name
+        to_view["description"] = recipe.description
+        to_view["cooking_time"] = recipe.cooking_time
+        to_view["preparation_time"] = recipe.preparation_time
+        ingredients = (
+            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+        )
+        to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
+
         if request.method == "GET":
             recipe_name = db.session.query(Recipe).get(recipe_id).name
             ingredients = (
@@ -198,6 +208,7 @@ def create_app():
                 form=form,
                 recipe_name=recipe_name,
                 ingredients=ingredients_str,
+                to_view=to_view,
             )
 
         form = AddIngredientForm()
@@ -234,7 +245,9 @@ def create_app():
             db.session.add(ingredient)
             db.session.commit()
             flash("Ингредиент добавлен", category="info")
-            return redirect(url_for("add_ingredient", recipe_id=recipe.id))
+            return redirect(
+                url_for("add_ingredient", recipe_id=recipe.id, to_view=to_view)
+            )
         else:
             flash_errors_from_form(form)
         return redirect(url_for("add_ingredient", recipe_id=recipe.id))
