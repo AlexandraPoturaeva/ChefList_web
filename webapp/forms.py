@@ -1,6 +1,13 @@
 from flask_wtf import FlaskForm
 from webapp.model import User
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, FloatField
+from wtforms import (
+    StringField,
+    PasswordField,
+    SubmitField,
+    BooleanField,
+    FloatField,
+    HiddenField,
+)
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -110,6 +117,22 @@ class CreateListForm(FlaskForm):
         render_kw={"class": "form-control"},
     )
     submit = SubmitField("Создать", render_kw={"class": "btn btn-primary"})
+
+
+class RenameElement(FlaskForm):
+    new_name = StringField(
+        "Новое название",
+        validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+
+    element_id = HiddenField(
+        "element_id",
+        validators=[DataRequired()],
+        render_kw={"id": "element_id"},
+    )
+
+    submit = SubmitField("Переименовать", render_kw={"class": "btn btn-primary"})
 
 
 class AddShoppingItem(FlaskForm):

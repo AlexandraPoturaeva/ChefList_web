@@ -5,7 +5,7 @@ function () {
     $('#my_shopping_lists').DataTable(
         {
             "columnDefs": [
-                { "orderable": false, "targets": [2, 3] }
+                { "orderable": false, "targets": [2, 3, 4] }
                 ],
             "order": [],
             "language": {
@@ -49,5 +49,8 @@ function copy(text, target) {
     return result;
 }
 
-
-
+$(document).on("click", ".rename", function () {
+     var element_id = $(this).data('id');
+     console.log(element_id)
+     $("#rename_modal #element_id").val( element_id );
+});
