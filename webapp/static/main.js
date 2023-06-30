@@ -49,8 +49,8 @@ function copy(text, target) {
     return result;
 }
 
-$(document).on("click", ".rename-shopping-list", function () {
-     var shopping_list_id = $(this).data('id');
-     $("#rename_shopping_list #shopping_list_id").val( shopping_list_id );
+$(document).on("click", ".rename", function () {
+     var element_id = $(this).data('id');
+     console.log(element_id)
+     $("#rename_modal #element_id").val( element_id );
     });
-

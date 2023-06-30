@@ -1,9 +1,5 @@
 {% extends "base.html" %}
-
-{% block head %}
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="{{url_for('static', filename='shopping_list.js')}}"></script>
-{% endblock %}
+{% import "rename_button_and_modal_form.html" as rename_shopping_list %}
 
 {% block content %}
 <div class="p-3"></div>
@@ -12,30 +8,21 @@
         <div class="col-4">
             <h2>{{ page_title }}</h2>
         </div>
-        <div class="col-4">
-            <a class="rename-shopping-list btn"
-               data-id="{{ shopping_list_id }}"
-               role="button"
-               data-bs-target="#rename_shopping_list"
-               data-bs-toggle="modal"
-               data-placement="right"
-               title="Переименовать">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                     class="bi bi-pencil" viewBox="0 0 16 16">
-                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                </svg>
-            </a>
-        </div>
+        <div class="col-4">{{rename_shopping_list.button(element_id=shopping_list_id)}}</div>
+        {{ rename_shopping_list.modal_form(
+        rename_form=rename_shopping_list_form,
+        rename_form_url=url_for("rename_shopping_list")
+        ) }}
     </div>
     <form action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list_public_id) }}"
           method="POST">
-        {{ form.csrf_token }}
+        {{ add_shopping_item_form.csrf_token }}
         <div class="row">
             <div class="col-4">
-                {{ form.name(placeholder="Название продукта") }}
+                {{ add_shopping_item_form.name(placeholder="Название продукта") }}
             </div>
             <div class="col-4">
-                {{ form.submit }}
+                {{ add_shopping_item_form.submit }}
             </div>
         </div>
     </form>
@@ -74,26 +61,6 @@
                 </li>
                 {%endfor%}
             </ul>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="rename_shopping_list" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body">
-                <div class="col 12 text-center">
-                    <form action=" {{ url_for('rename_shopping_list') }}"
-                          method="POST">
-                        {{ form_2.csrf_token }}
-                        <div class="form-floating mb-3">
-                            {{ form_2.new_name(placeholder="Новое название") }}
-                            {{ form_2.new_name.label(class="form-label") }}
-                        </div>
-                        {{ form_2.shopping_list_id }}
-                        {{ form_2.submit }}
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
 </div>

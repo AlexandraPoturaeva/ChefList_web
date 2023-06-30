@@ -9,7 +9,7 @@ from flask_login import (
 from webapp.forms import (
     LoginForm,
     RegistrationForm,
-    RenameShoppingList,
+    RenameElement,
     AddIngredientForm,
     AddRecipeForm,
     CreateListForm,
@@ -260,9 +260,11 @@ def create_app():
     @app.route("/my-lists")
     @login_required
     def show_my_shopping_lists():
-        session["url"] = url_for("show_my_shopping_lists")
-        form = CreateListForm()
-        form_2 = RenameShoppingList()
+        session["redirect_url_after_renaming_shopping_list"] = url_for(
+            "show_my_shopping_lists"
+        )
+        create_shopping_list_form = CreateListForm()
+        rename_shopping_list_form = RenameElement()
         user_id = current_user.id
         user_shopping_lists = ShoppingList.query.filter(
             ShoppingList.user_id == user_id
@@ -270,8 +272,8 @@ def create_app():
         title = "Мои списки покупок"
         return render_template(
             "my_shopping_lists.html",
-            form=form,
-            form_2=form_2,
+            create_shopping_list_form=create_shopping_list_form,
+            rename_shopping_list_form=rename_shopping_list_form,
             user_shopping_lists=user_shopping_lists,
             page_title=title,
         )
@@ -308,66 +310,86 @@ def create_app():
 
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/rename-shopping-list/", methods=["POST"])
+    @app.route("/rename-shopping-list", methods=["POST"])
     def rename_shopping_list():
-        form = RenameShoppingList()
+        form = RenameElement()
 
         if form.validate_on_submit():
             new_name = form.new_name.data
-            shopping_list_id = form.shopping_list_id.data
+            shopping_list_id = form.element_id.data
             shopping_list_to_rename = ShoppingList.query.filter(
                 ShoppingList.id == shopping_list_id
             ).one_or_none()
-            shopping_list_to_rename.name = new_name
-            db.session.commit()
-            flash("Список переименован", category="success")
+
+            if shopping_list_to_rename:
+                shopping_list_to_rename.name = new_name
+                db.session.commit()
+                flash("Список переименован", category="success")
+            else:
+                flash("При переименовании списка возникла ошибка", category="danger")
 
         else:
             flash_errors_from_form(form)
 
-        return redirect(session["url"])
+        redirect_url = session.get("redirect_url_after_renaming_shopping_list")
+
+        if not redirect_url:
+            return redirect(url_for("show_my_shopping_lists"))
+
+        return redirect(redirect_url)
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     def show_shopping_list(public_id):
-        session["url"] = url_for("show_shopping_list", public_id=public_id)
-        form = AddShoppingItem()
-        form_2 = RenameShoppingList()
+        session["redirect_url_after_renaming_shopping_list"] = url_for(
+            "show_shopping_list", public_id=public_id
+        )
+
+        add_shopping_item_form = AddShoppingItem()
+        rename_shopping_list_form = RenameElement()
+
         shopping_list = ShoppingList.query.filter(
             ShoppingList.public_id == public_id
         ).one_or_none()
-        shopping_list_id = shopping_list.id
-        shopping_items = ShoppingItem.query.filter(
-            ShoppingItem.shopping_list_id == shopping_list_id
-        ).all()
+
         if shopping_list:
+            shopping_list_id = shopping_list.id
             page_title = shopping_list.name
+            shopping_items = ShoppingItem.query.filter(
+                ShoppingItem.shopping_list_id == shopping_list_id
+            ).all()
             return render_template(
                 "shopping_list.html",
                 page_title=page_title,
-                form=form,
-                form_2=form_2,
+                add_shopping_item_form=add_shopping_item_form,
+                rename_shopping_list_form=rename_shopping_list_form,
                 shopping_list_id=shopping_list_id,
                 shopping_list_public_id=public_id,
                 shopping_items=shopping_items,
             )
-        else:
-            flash("При создании списка возникла ошибка", category="danger")
-            return redirect(url_for("show_my_shopping_lists"))
+
+        flash("При показе списка возникла ошибка", category="danger")
+        return redirect(url_for("show_my_shopping_lists"))
 
     @app.route("/add-item/<shopping_list_public_id>", methods=["GET", "POST"])
     def add_item_to_shopping_list(shopping_list_public_id):
         form = AddShoppingItem()
+
         if form.validate_on_submit():
             shopping_list = ShoppingList.query.filter(
                 ShoppingList.public_id == shopping_list_public_id
             ).one_or_none()
-            shopping_list_id = shopping_list.id
-            new_item = ShoppingItem(
-                name=form.name.data, shopping_list_id=shopping_list_id
-            )
-            db.session.add(new_item)
-            db.session.commit()
-            flash("Новый продукт успешно добавлен", category="success")
+
+            if shopping_list:
+                shopping_list_id = shopping_list.id
+                new_item = ShoppingItem(
+                    name=form.name.data, shopping_list_id=shopping_list_id
+                )
+                db.session.add(new_item)
+                db.session.commit()
+                flash("Новый продукт успешно добавлен", category="success")
+
+            else:
+                flash("При добавлении продукта возникла ошибка", category="danger")
         else:
             flash_errors_from_form(form)
 

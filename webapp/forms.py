@@ -119,17 +119,17 @@ class CreateListForm(FlaskForm):
     submit = SubmitField("Создать", render_kw={"class": "btn btn-primary"})
 
 
-class RenameShoppingList(FlaskForm):
+class RenameElement(FlaskForm):
     new_name = StringField(
         "Новое название",
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
 
-    shopping_list_id = HiddenField(
-        "shopping_list_id",
+    element_id = HiddenField(
+        "element_id",
         validators=[DataRequired()],
-        render_kw={"id": "shopping_list_id"},
+        render_kw={"id": "element_id"},
     )
 
     submit = SubmitField("Переименовать", render_kw={"class": "btn btn-primary"})
