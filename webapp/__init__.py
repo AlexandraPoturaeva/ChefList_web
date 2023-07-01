@@ -19,9 +19,7 @@ from webapp.model import (
     Ingredient,
     Product,
     Unit,
-    ProductCategorie,
     Recipe,
-    RecipeCategory,
     ShoppingList,
     ShoppingItem,
 )
@@ -136,22 +134,17 @@ def create_app():
         form = AddRecipeForm()
         if form.validate_on_submit():
             name = form.name.data
-            category = RecipeCategory.query.filter(
-                RecipeCategory.name == form.category.data
-            ).one_or_none()
-            if not category:
-                category = RecipeCategory(name=form.category.data)
-                db.session.add(category)
-                db.session.commit()
-                category_id = (
-                    RecipeCategory.query.filter(
-                        RecipeCategory.name == form.category.data
-                    )
-                    .one()
-                    .id
-                )
-            else:
-                category_id = category.id
+
+            recipe_name_already_used = bool(
+                Recipe.query.filter(
+                    Recipe.name == name, Recipe.user_id == current_user.id
+                ).count()
+            )
+            if recipe_name_already_used:
+                flash("Рецепт с таким именем уже существует", category="danger")
+                return render_template("add_recipe.html", form=form)
+
+            category = form.category.data
 
             description = form.description.data
             preparation_time = form.preparation_time.data
@@ -160,7 +153,7 @@ def create_app():
             recipe = Recipe(
                 name=name,
                 user_id=current_user.id,
-                category_id=category_id,
+                category=category,
                 description=description,
                 preparation_time=preparation_time,
                 cooking_time=cooking_time,
@@ -194,6 +187,7 @@ def create_app():
 
         to_view = {}
         to_view["name"] = recipe.name
+        to_view["category"] = recipe.category
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
@@ -233,9 +227,7 @@ def create_app():
                 Product.name == form.product.data
             ).one_or_none()
             if not product:
-                product = Product(
-                    name=form.product.data, category_id=1
-                )  # TODO: Добавить работу с категориями
+                product = Product(name=form.product.data, category=form.category.data)
                 db.session.add(product)
                 db.session.commit()
                 product_id = (
@@ -272,6 +264,7 @@ def create_app():
             return redirect(url_for("recipes"))
         to_view = {}
         to_view["name"] = recipe.name
+        to_view["category"] = recipe.category
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
