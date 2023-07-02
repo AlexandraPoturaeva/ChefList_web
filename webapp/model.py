@@ -5,6 +5,31 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+PRODUCT_CATEGORIES = {
+    "Хлебобулочные изделия": "BurlyWood",
+    "Кондитерские товары": "Goldenrod",
+    "Молочная продукция": "Seashell",
+    "Мясные товары": "Brown",
+    "Колбасная продукция": "Salmon",
+    "Рыба и морепродукты": "SteelBlue",
+    "Овощи-фрукты": "LimeGreen",
+    "Бакалея": "HotPink",
+    "Напитки": "Magenta",
+}
+
+RECIPE_CATEGORIES = {
+    "Первые блюда": "FireBrick",
+    "Вторые блюда": "DarkGoldenRod",
+    "Закуски": "LightSkyBlue",
+    "Салаты": "SpringGreen",
+    "Соусы, кремы": "PeachPuff",
+    "Напитки": "OrangeRed",
+    "Десерты": "DarkOrange",
+    "Выпечка": "LemonChiffon",
+    "Торты": "MistyRose",
+    "Блины и оладьи": "BurlyWood",
+}
+
 
 class User(db.Model, UserMixin):
     __tablename__ = "user"
@@ -30,24 +55,6 @@ class User(db.Model, UserMixin):
         )
 
 
-class ProductCategorie(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, unique=True)
-    color = db.Column(db.Text)
-
-    def __repr__(self):
-        return f"<ProductCategory: {self.name}, color: {self.color}>"
-
-
-class RecipeCategory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, unique=True)
-    color = db.Column(db.Text)
-
-    def __repr__(self):
-        return f"<RecipeCategory: {self.name}, color: {self.color}>"
-
-
 class Unit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False, unique=True, index=True)
@@ -59,9 +66,7 @@ class Unit(db.Model):
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False, index=True, unique=True)
-    category_id = db.Column(
-        db.Integer, db.ForeignKey(ProductCategorie.id), nullable=False
-    )
+    category = db.Column(db.Text)
 
     def __repr__(self):
         return f"<Product: {self.name}, category: {self.category}>"
@@ -71,7 +76,7 @@ class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    category_id = db.Column(db.Integer, db.ForeignKey("recipe_category.id"))
+    category = db.Column(db.Text)
     description = db.Column(db.Text)
     preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
