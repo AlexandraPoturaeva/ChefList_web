@@ -156,8 +156,8 @@ def create_app():
 
             recipe = Recipe(
                 name=name,
-                user=current_user.id,
-                category=category_id,
+                user_id=current_user.id,
+                category_id=category_id,
                 description=description,
                 preparation_time=preparation_time,
                 cooking_time=cooking_time,
@@ -189,7 +189,7 @@ def create_app():
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
         ingredients = (
-            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+            db.session.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
         )
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
 
@@ -197,7 +197,7 @@ def create_app():
             recipe_name = db.session.query(Recipe).get(recipe_id).name
             ingredients = (
                 db.session.query(Ingredient)
-                .filter(Ingredient.recipe == recipe_id)
+                .filter(Ingredient.recipe_id == recipe_id)
                 .all()
             )
             ingredients_str = [str(ingredient) for ingredient in ingredients]
@@ -225,7 +225,7 @@ def create_app():
             )
             if not product_id:
                 product = Product(
-                    name=form.product.data, category=1
+                    name=form.product.data, category_id=1
                 )  # TODO: Добавить работу с категориями
                 db.session.add(product)
                 db.session.commit()
@@ -236,10 +236,10 @@ def create_app():
             quantity = form.quantity.data
 
             ingredient = Ingredient(
-                product=product_id,
+                product_id=product_id,
                 quantity=quantity,
-                unit=unit_id,
-                recipe=recipe.id,
+                unit_id=unit_id,
+                recipe_id=recipe.id,
             )
 
             db.session.add(ingredient)
@@ -265,7 +265,7 @@ def create_app():
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
         ingredients = (
-            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+            db.session.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
         )
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
