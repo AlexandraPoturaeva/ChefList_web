@@ -21,13 +21,10 @@ from webapp.model import (
     Ingredient,
     Product,
     Unit,
-    ProductCategorie,
     Recipe,
-    RecipeCategory,
     ShoppingList,
     ShoppingItem,
 )
-from webapp.utils import get_id_by_name
 from uuid import uuid4
 
 
@@ -139,16 +136,16 @@ def create_app():
         if form.validate_on_submit():
             name = form.name.data
 
-            category_id = get_id_by_name(
-                form.category.data, db.session.query(RecipeCategory).all()
+            recipe_name_already_used = bool(
+                Recipe.query.filter(
+                    Recipe.name == name, Recipe.user_id == current_user.id
+                ).count()
             )
-            if not category_id:
-                category = RecipeCategory(name=form.name.data)
-                db.session.add(category)
-                db.session.commit()
-                category_id = get_id_by_name(
-                    form.category.data, db.session.query(RecipeCategory).all()
-                )
+            if recipe_name_already_used:
+                flash("Рецепт с таким именем уже существует", category="danger")
+                return render_template("add_recipe.html", form=form)
+
+            category = form.category.data
 
             description = form.description.data
             preparation_time = form.preparation_time.data
@@ -156,8 +153,8 @@ def create_app():
 
             recipe = Recipe(
                 name=name,
-                user=current_user.id,
-                category=category_id,
+                user_id=current_user.id,
+                category=category,
                 description=description,
                 preparation_time=preparation_time,
                 cooking_time=cooking_time,
@@ -165,9 +162,15 @@ def create_app():
             db.session.add(recipe)
             db.session.commit()
 
-            recipe_id = get_id_by_name(recipe.name, db.session.query(Recipe).all())
+            recipe_id = (
+                Recipe.query.filter(
+                    Recipe.name == recipe.name, Recipe.user_id == recipe.user_id
+                )
+                .one()
+                .id
+            )
 
-            return redirect(url_for("add_ingredient", recipe_id=str(recipe_id)))
+            return redirect(url_for("add_ingredient", recipe_id=recipe_id))
         else:
             flash_errors_from_form(form)
         return redirect(url_for("recipe", recipe_id=recipe_id))
@@ -185,19 +188,18 @@ def create_app():
 
         to_view = {}
         to_view["name"] = recipe.name
+        to_view["category"] = recipe.category
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
-        ingredients = (
-            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
-        )
+        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
 
         if request.method == "GET":
             recipe_name = db.session.query(Recipe).get(recipe_id).name
             ingredients = (
                 db.session.query(Ingredient)
-                .filter(Ingredient.recipe == recipe_id)
+                .filter(Ingredient.recipe_id == recipe_id)
                 .all()
             )
             ingredients_str = [str(ingredient) for ingredient in ingredients]
@@ -213,33 +215,35 @@ def create_app():
 
         form = AddIngredientForm()
         if form.validate_on_submit():
-            unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
-            if not unit_id:
+            unit = Unit.query.filter(Unit.name == form.unit.data).one_or_none()
+            if not unit:
                 unit = Unit(name=form.unit.data)
                 db.session.add(unit)
                 db.session.commit()
-                unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
+                unit_id = Unit.query.filter(Unit.name == form.unit.data).one().id
+            else:
+                unit_id = unit.id
 
-            product_id = get_id_by_name(
-                form.product.data, db.session.query(Product).all()
-            )
-            if not product_id:
-                product = Product(
-                    name=form.product.data, category=1
-                )  # TODO: Добавить работу с категориями
+            product = Product.query.filter(
+                Product.name == form.product.data
+            ).one_or_none()
+            if not product:
+                product = Product(name=form.product.data, category=form.category.data)
                 db.session.add(product)
                 db.session.commit()
-                product_id = get_id_by_name(
-                    form.product.data, db.session.query(Product).all()
+                product_id = (
+                    Product.query.filter(Product.name == form.product.data).one().id
                 )
+            else:
+                product_id = product.id
 
             quantity = form.quantity.data
 
             ingredient = Ingredient(
-                product=product_id,
+                product_id=product_id,
                 quantity=quantity,
-                unit=unit_id,
-                recipe=recipe.id,
+                unit_id=unit_id,
+                recipe_id=recipe.id,
             )
 
             db.session.add(ingredient)
@@ -261,11 +265,12 @@ def create_app():
             return redirect(url_for("recipes"))
         to_view = {}
         to_view["name"] = recipe.name
+        to_view["category"] = recipe.category
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
         ingredients = (
-            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+            db.session.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
         )
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
@@ -323,6 +328,7 @@ def create_app():
 
         return redirect(url_for("show_my_shopping_lists"))
 
+
     @app.route("/rename-shopping-list", methods=["POST"])
     def rename_shopping_list():
         form = RenameElement()
@@ -350,6 +356,7 @@ def create_app():
             return redirect(url_for("show_my_shopping_lists"))
 
         return redirect(redirect_url)
+
 
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     def show_shopping_list(public_id):
