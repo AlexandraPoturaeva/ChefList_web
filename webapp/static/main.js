@@ -25,6 +25,39 @@ function () {
             }
         }
     );
+
+    $(document).on("click", ".rename", function () {
+         var element_id = $(this).data('id');
+         $("#rename_modal #element_id").val( element_id );
+    });
+
+    $('input.check_item').change(function() {
+
+        var checked = 0;
+
+        if ($(this).is(':checked')) {
+
+            checked = 1;
+            $(this).parents('ul.shopping-list').append($(this).parents('li.shopping-list-item'));
+            $(this).next().addClass('text-decoration-line-through');
+
+        } else {
+
+            $(this).parents('ul.shopping-list').prepend($(this).parents('li.shopping-list-item'));
+            $(this).next().removeClass('text-decoration-line-through');
+        }
+
+        $.post(
+            "/shopping-item-checkbox",
+            {
+                item_id: $(this).data('id'),
+                state_of_checkbox: checked
+            },
+            function( data ) {
+                console.log(data);
+            }
+        );
+    });
 });
 
 function copy(text, target) {
@@ -48,9 +81,3 @@ function copy(text, target) {
 
     return result;
 }
-
-$(document).on("click", ".rename", function () {
-     var element_id = $(this).data('id');
-     console.log(element_id)
-     $("#rename_modal #element_id").val( element_id );
-});

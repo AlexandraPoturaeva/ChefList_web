@@ -7,13 +7,13 @@ from flask_login import (
     logout_user,
 )
 from webapp.forms import (
+    AddIngredientForm,
+    AddRecipeForm,
+    AddShoppingItem,
+    CreateListForm,
     LoginForm,
     RegistrationForm,
     RenameElement,
-    AddIngredientForm,
-    AddRecipeForm,
-    CreateListForm,
-    AddShoppingItem,
 )
 from webapp.model import (
     db,
@@ -328,7 +328,6 @@ def create_app():
 
         return redirect(url_for("show_my_shopping_lists"))
 
-
     @app.route("/rename-shopping-list", methods=["POST"])
     def rename_shopping_list():
         form = RenameElement()
@@ -357,7 +356,6 @@ def create_app():
 
         return redirect(redirect_url)
 
-
     @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
     def show_shopping_list(public_id):
         session["redirect_url_after_renaming_shopping_list"] = url_for(
@@ -374,9 +372,13 @@ def create_app():
         if shopping_list:
             shopping_list_id = shopping_list.id
             page_title = shopping_list.name
-            shopping_items = ShoppingItem.query.filter(
-                ShoppingItem.shopping_list_id == shopping_list_id
-            ).all()
+            shopping_items = (
+                ShoppingItem.query.filter(
+                    ShoppingItem.shopping_list_id == shopping_list_id
+                )
+                .order_by(ShoppingItem.checked, ShoppingItem.name)
+                .all()
+            )
             return render_template(
                 "shopping_list.html",
                 page_title=page_title,
@@ -433,6 +435,21 @@ def create_app():
         return redirect(
             url_for("show_shopping_list", public_id=shopping_list_public_id)
         )
+
+    @app.route("/shopping-item-checkbox", methods=["POST"])
+    def shopping_item_checkbox():
+        item_id = request.form.get("item_id")
+
+        item_to_check = ShoppingItem.query.filter(
+            ShoppingItem.id == item_id
+        ).one_or_none()
+
+        if item_to_check:
+            item_to_check.checked = int(request.form.get("state_of_checkbox"))
+            db.session.commit()
+            return "ok"
+        else:
+            return "failed"
 
     return app
 
