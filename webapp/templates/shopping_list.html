@@ -6,15 +6,15 @@
 <div class="row">
     <div class="row">
         <div class="col-4">
-            <h2>{{ page_title }}</h2>
+            <h2>{{ shopping_list.name }}</h2>
         </div>
-        <div class="col-4">{{rename_shopping_list.button(element_id=shopping_list_id)}}</div>
+        <div class="col-4">{{rename_shopping_list.button(element_id=shopping_list.id)}}</div>
         {{ rename_shopping_list.modal_form(
         rename_form=rename_shopping_list_form,
         rename_form_url=url_for("rename_shopping_list")
         ) }}
     </div>
-    <form action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list_public_id) }}"
+    <form action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
           method="POST">
         {{ add_shopping_item_form.csrf_token }}
         <div class="row">
@@ -30,7 +30,7 @@
     <div class="row">
         <div class="col-6">
             <ul class="list-group shopping-list">
-                {%for item in shopping_items%}
+                {% for item in shopping_list.shopping_items|sort(attribute="checked,name") %}
                 <li class="list-group-item shopping-list-item">
                     <div class="row align-items-center">
                         <div class="col-10">
@@ -50,7 +50,7 @@
                                    href="{{
                                        url_for('delete_item_from_shopping_list',
                                        item_id = item.id,
-                                       shopping_list_public_id = shopping_list_public_id)
+                                       shopping_list_public_id = shopping_list.public_id)
                                        }}"
                                    role="button"
                                    data-toggle="tooltip"

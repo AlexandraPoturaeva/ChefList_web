@@ -104,14 +104,12 @@ def create_app():
     @app.route("/profile")
     @login_required
     def profile():
-        email = current_user.email
-        created_at = current_user.created_at.strftime("%d.%m.%Y")
+        user = current_user
         title = "Моя страница"
         return render_template(
             "profile.html",
             page_title=title,
-            user_email=email,
-            user_created_at=created_at,
+            user=user,
         )
 
     @app.route("/logout")
@@ -283,10 +281,8 @@ def create_app():
         )
         create_shopping_list_form = CreateListForm()
         rename_shopping_list_form = RenameElement()
-        user_id = current_user.id
-        user_shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == user_id
-        ).all()
+        user = current_user
+        user_shopping_lists = user.shopping_lists
         title = "Мои списки покупок"
         return render_template(
             "my_shopping_lists.html",
@@ -369,23 +365,11 @@ def create_app():
         ).one_or_none()
 
         if shopping_list:
-            shopping_list_id = shopping_list.id
-            page_title = shopping_list.name
-            shopping_items = (
-                ShoppingItem.query.filter(
-                    ShoppingItem.shopping_list_id == shopping_list_id
-                )
-                .order_by(ShoppingItem.checked, ShoppingItem.name)
-                .all()
-            )
             return render_template(
                 "shopping_list.html",
-                page_title=page_title,
                 add_shopping_item_form=add_shopping_item_form,
                 rename_shopping_list_form=rename_shopping_list_form,
-                shopping_list_id=shopping_list_id,
-                shopping_list_public_id=public_id,
-                shopping_items=shopping_items,
+                shopping_list=shopping_list,
             )
 
         flash("При показе списка возникла ошибка", category="danger")

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="p-5"></div>
-<h2> Логин: {{ user_email }} <br> Дата регистрации: {{ user_created_at }} </h2>
+<h2> Логин: {{ user.email }} <br> Дата регистрации: {{ user.created_at }} </h2>
 <p><a href="{{ url_for('logout') }}" class="link-primary">Выйти</a></p>
 {% endblock %}
