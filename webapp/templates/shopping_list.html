@@ -29,13 +29,20 @@
     <div class="p-3"></div>
     <div class="row">
         <div class="col-6">
-            <ul class="list-group">
+            <ul class="list-group shopping-list">
                 {%for item in shopping_items%}
-                <li class="list-group-item">
+                <li class="list-group-item shopping-list-item">
                     <div class="row align-items-center">
                         <div class="col-10">
-                            <input class="form-check-input me-1" type="checkbox" value="" id="item">
-                            <label class="form-check-label" for="item">{{ item.name }}</label>
+                            <input data-id = "{{ item.id }}"
+                                   class="form-check-input me-1 check-item"
+                                   type="checkbox" value="" id="check_item_{{ item.id }}"
+                                   {%if item.checked %} checked="checked" {% endif %}
+                            >
+                            <label
+                                    class="form-check-label {%if item.checked %} text-decoration-line-through {% endif %}"
+                                    for="check_item_{{ item.id }}">{{ item.name }}
+                            </label>
                         </div>
                         <div class="col-2">
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
