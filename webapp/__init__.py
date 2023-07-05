@@ -296,7 +296,7 @@ def create_app():
             page_title=title,
         )
 
-    @app.route("/create-new-list", methods=["GET", "POST"])
+    @app.route("/create-new-list", methods=["POST"])
     def create_new_shopping_list():
         form = CreateListForm()
         public_id = str(uuid4())
@@ -313,7 +313,7 @@ def create_app():
             flash_errors_from_form(form)
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/delete-shopping-list/<shopping_list_id>", methods=["GET", "POST"])
+    @app.route("/delete-shopping-list/<shopping_list_id>")
     def delete_shopping_list(shopping_list_id):
         shopping_list_to_delete = ShoppingList.query.filter(
             ShoppingList.id == shopping_list_id
@@ -349,14 +349,13 @@ def create_app():
         else:
             flash_errors_from_form(form)
 
-        redirect_url = session.get("redirect_url_after_renaming_shopping_list")
-
-        if not redirect_url:
-            return redirect(url_for("show_my_shopping_lists"))
-
+        redirect_url = session.get(
+            "redirect_url_after_renaming_shopping_list",
+            url_for("show_my_shopping_lists"),
+        )
         return redirect(redirect_url)
 
-    @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
+    @app.route("/my-lists/<public_id>")
     def show_shopping_list(public_id):
         session["redirect_url_after_renaming_shopping_list"] = url_for(
             "show_shopping_list", public_id=public_id
@@ -392,7 +391,7 @@ def create_app():
         flash("При показе списка возникла ошибка", category="danger")
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/add-item/<shopping_list_public_id>", methods=["GET", "POST"])
+    @app.route("/add-item/<shopping_list_public_id>", methods=["POST"])
     def add_item_to_shopping_list(shopping_list_public_id):
         form = AddShoppingItem()
 
