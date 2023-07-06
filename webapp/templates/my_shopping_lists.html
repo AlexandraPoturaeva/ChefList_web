@@ -1,22 +1,12 @@
 {% extends "base.html" %}
-
-{% block head %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
-<script src="https://cdn.datatables.net/plug-ins/1.13.4/sorting/datetime-moment.js"></script>
-<script src="{{url_for('static', filename='my_shopping_lists.js')}}"></script>
-{% endblock %}
+{% import "rename_button_and_modal_form.html" as rename_shopping_list %}
 
 {% block content %}
 <div class="row">
     <div class="col"></div>
     <div class="col-5">
         <h2>Мои списки покупок</h2>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-new-list">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create_new_list">
             Создать новый список
         </button>
         <div class="p-3"></div>
@@ -26,6 +16,8 @@
                 <th scope="col">Название</th>
                 <th scope="col">Дата создания</th>
                 <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
             </tr>
             </thead>
             <tbody>
@@ -34,12 +26,31 @@
                 <td class="align-middle">
                     <a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}"
                        class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">{{
-                    list.name }}</a></td>
+                        list.name }}</a></td>
                 <td class="align-middle">{{ list.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>{{rename_shopping_list.button(element_id=list.id)}}</td>
                 <td>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a class="btn"
                            role="button"
+                           onclick="copy_link_to_clipboard('/{{list.public_id}}','#copy_button_{{list.id}}')"
+                           id="copy_button_{{list.id}}"
+                           data-toggle="tooltip"
+                           data-placement="right"
+                           title="Копировать ссылку">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-link" viewBox="0 0 16 16">
+                                <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
+                                <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
+                            </svg>
+                        </a>
+                </td>
+                <td>
+                        <a class="btn"
+                           role="button"
+                           href="{{
+                                       url_for('delete_shopping_list',
+                                       shopping_list_id = list.id)
+                                       }}"
                            data-toggle="tooltip"
                            data-placement="right"
                            title="Удалить">
@@ -49,7 +60,6 @@
                                 <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
                             </svg>
                         </a>
-                    </div>
                 </td>
             </tr>
             {%endfor%}
@@ -58,22 +68,26 @@
     </div>
     <div class="col"></div>
 </div>
-<div class="modal fade" id="create-new-list" tabindex="-1" aria-hidden="true">
+<div class="modal fade create-new-list" id="create_new_list" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body">
                 <div class="col 12 text-center">
                     <form action=" {{ url_for('create_new_shopping_list') }}" method="POST">
-                        {{ form.csrf_token }}
+                        {{ create_shopping_list_form.csrf_token }}
                         <div class="form-floating mb-3">
-                            {{ form.name(placeholder="Название списка") }}
-                            {{ form.name.label(class="form-label") }}
+                            {{ create_shopping_list_form.name(placeholder="Название списка") }}
+                            {{ create_shopping_list_form.name.label(class="form-label") }}
                         </div>
-                        {{ form.submit }}
+                        {{ create_shopping_list_form.submit }}
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{{ rename_shopping_list.modal_form(
+    rename_form=rename_shopping_list_form,
+    rename_form_url=url_for("rename_shopping_list")
+) }}
 {% endblock %}

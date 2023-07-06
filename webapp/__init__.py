@@ -1,3 +1,4 @@
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -6,12 +7,13 @@ from flask_login import (
     logout_user,
 )
 from webapp.forms import (
-    LoginForm,
-    RegistrationForm,
     AddIngredientForm,
     AddRecipeForm,
-    CreateListForm,
     AddShoppingItem,
+    CreateListForm,
+    LoginForm,
+    RegistrationForm,
+    RenameElement,
 )
 from webapp.model import (
     db,
@@ -19,15 +21,20 @@ from webapp.model import (
     Ingredient,
     Product,
     Unit,
-    ProductCategorie,
     Recipe,
-    RecipeCategory,
     ShoppingList,
     ShoppingItem,
 )
-from webapp.utils import get_id_by_name
 from uuid import uuid4
-from flask import Flask, flash, redirect, render_template, url_for, request
+
+
+def flash_errors_from_form(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(
+                'Ошибка в поле "{}": {}'.format(getattr(form, field).label.text, error),
+                category="danger",
+            )
 
 
 def create_app():
@@ -66,14 +73,7 @@ def create_app():
             return redirect(url_for("index"))
 
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        ),
-                        category="danger",
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("registration"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -136,16 +136,16 @@ def create_app():
         if form.validate_on_submit():
             name = form.name.data
 
-            category_id = get_id_by_name(
-                form.category.data, db.session.query(RecipeCategory).all()
+            recipe_name_already_used = bool(
+                Recipe.query.filter(
+                    Recipe.name == name, Recipe.user_id == current_user.id
+                ).count()
             )
-            if not category_id:
-                category = RecipeCategory(name=form.name.data)
-                db.session.add(category)
-                db.session.commit()
-                category_id = get_id_by_name(
-                    form.category.data, db.session.query(RecipeCategory).all()
-                )
+            if recipe_name_already_used:
+                flash("Рецепт с таким именем уже существует", category="danger")
+                return render_template("add_recipe.html", form=form)
+
+            category = form.category.data
 
             description = form.description.data
             preparation_time = form.preparation_time.data
@@ -153,8 +153,8 @@ def create_app():
 
             recipe = Recipe(
                 name=name,
-                user=current_user.id,
-                category=category_id,
+                user_id=current_user.id,
+                category=category,
                 description=description,
                 preparation_time=preparation_time,
                 cooking_time=cooking_time,
@@ -162,17 +162,17 @@ def create_app():
             db.session.add(recipe)
             db.session.commit()
 
-            recipe_id = get_id_by_name(recipe.name, db.session.query(Recipe).all())
+            recipe_id = (
+                Recipe.query.filter(
+                    Recipe.name == recipe.name, Recipe.user_id == recipe.user_id
+                )
+                .one()
+                .id
+            )
 
-            return redirect(url_for("add_ingredient", recipe_id=str(recipe_id)))
+            return redirect(url_for("add_ingredient", recipe_id=recipe_id))
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        )
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("recipe", recipe_id=recipe_id))
 
     @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
@@ -186,11 +186,20 @@ def create_app():
             flash("Неверный идентификатор рецепта")
             return redirect(url_for("recipes"))
 
+        to_view = {}
+        to_view["name"] = recipe.name
+        to_view["category"] = recipe.category
+        to_view["description"] = recipe.description
+        to_view["cooking_time"] = recipe.cooking_time
+        to_view["preparation_time"] = recipe.preparation_time
+        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
+        to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
+
         if request.method == "GET":
             recipe_name = db.session.query(Recipe).get(recipe_id).name
             ingredients = (
                 db.session.query(Ingredient)
-                .filter(Ingredient.recipe == recipe_id)
+                .filter(Ingredient.recipe_id == recipe_id)
                 .all()
             )
             ingredients_str = [str(ingredient) for ingredient in ingredients]
@@ -201,51 +210,50 @@ def create_app():
                 form=form,
                 recipe_name=recipe_name,
                 ingredients=ingredients_str,
+                to_view=to_view,
             )
 
         form = AddIngredientForm()
         if form.validate_on_submit():
-            unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
-            if not unit_id:
+            unit = Unit.query.filter(Unit.name == form.unit.data).one_or_none()
+            if not unit:
                 unit = Unit(name=form.unit.data)
                 db.session.add(unit)
                 db.session.commit()
-                unit_id = get_id_by_name(form.unit.data, db.session.query(Unit).all())
+                unit_id = Unit.query.filter(Unit.name == form.unit.data).one().id
+            else:
+                unit_id = unit.id
 
-            product_id = get_id_by_name(
-                form.product.data, db.session.query(Product).all()
-            )
-            if not product_id:
-                product = Product(
-                    name=form.product.data, category=1
-                )  # TODO: Добавить работу с категориями
+            product = Product.query.filter(
+                Product.name == form.product.data
+            ).one_or_none()
+            if not product:
+                product = Product(name=form.product.data, category=form.category.data)
                 db.session.add(product)
                 db.session.commit()
-                product_id = get_id_by_name(
-                    form.product.data, db.session.query(Product).all()
+                product_id = (
+                    Product.query.filter(Product.name == form.product.data).one().id
                 )
+            else:
+                product_id = product.id
 
             quantity = form.quantity.data
 
             ingredient = Ingredient(
-                product=product_id,
+                product_id=product_id,
                 quantity=quantity,
-                unit=unit_id,
-                recipe=recipe.id,
+                unit_id=unit_id,
+                recipe_id=recipe.id,
             )
 
             db.session.add(ingredient)
             db.session.commit()
             flash("Ингредиент добавлен", category="info")
-            return redirect(url_for("add_ingredient", recipe_id=recipe.id))
+            return redirect(
+                url_for("add_ingredient", recipe_id=recipe.id, to_view=to_view)
+            )
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        )
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("add_ingredient", recipe_id=recipe.id))
 
     @app.route("/recipe/<int:recipe_id>")
@@ -257,11 +265,12 @@ def create_app():
             return redirect(url_for("recipes"))
         to_view = {}
         to_view["name"] = recipe.name
+        to_view["category"] = recipe.category
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
         ingredients = (
-            db.session.query(Ingredient).filter(Ingredient.recipe == recipe_id).all()
+            db.session.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
         )
         to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
         return render_template("recipe.html", to_view=to_view)
@@ -269,7 +278,11 @@ def create_app():
     @app.route("/my-lists")
     @login_required
     def show_my_shopping_lists():
-        form = CreateListForm()
+        session["redirect_url_after_renaming_shopping_list"] = url_for(
+            "show_my_shopping_lists"
+        )
+        create_shopping_list_form = CreateListForm()
+        rename_shopping_list_form = RenameElement()
         user_id = current_user.id
         user_shopping_lists = ShoppingList.query.filter(
             ShoppingList.user_id == user_id
@@ -277,12 +290,13 @@ def create_app():
         title = "Мои списки покупок"
         return render_template(
             "my_shopping_lists.html",
-            form=form,
+            create_shopping_list_form=create_shopping_list_form,
+            rename_shopping_list_form=rename_shopping_list_form,
             user_shopping_lists=user_shopping_lists,
             page_title=title,
         )
 
-    @app.route("/create-new-list", methods=["GET", "POST"])
+    @app.route("/create-new-list", methods=["POST"])
     def create_new_shopping_list():
         form = CreateListForm()
         public_id = str(uuid4())
@@ -296,62 +310,109 @@ def create_app():
             flash("Новый список успешно создан", category="success")
             return redirect(url_for("show_shopping_list", public_id=public_id))
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error
-                        ),
-                        category="danger",
-                    )
+            flash_errors_from_form(form)
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
-    @login_required
+    @app.route("/delete-shopping-list/<shopping_list_id>")
+    def delete_shopping_list(shopping_list_id):
+        shopping_list_to_delete = ShoppingList.query.filter(
+            ShoppingList.id == shopping_list_id
+        ).one_or_none()
+
+        if shopping_list_to_delete:
+            db.session.delete(shopping_list_to_delete)
+            db.session.commit()
+            flash("Список удалён", category="success")
+        else:
+            flash("При удалении списка возникла ошибка", category="danger")
+
+        return redirect(url_for("show_my_shopping_lists"))
+
+    @app.route("/rename-shopping-list", methods=["POST"])
+    def rename_shopping_list():
+        form = RenameElement()
+
+        if form.validate_on_submit():
+            new_name = form.new_name.data
+            shopping_list_id = form.element_id.data
+            shopping_list_to_rename = ShoppingList.query.filter(
+                ShoppingList.id == shopping_list_id
+            ).one_or_none()
+
+            if shopping_list_to_rename:
+                shopping_list_to_rename.name = new_name
+                db.session.commit()
+                flash("Список переименован", category="success")
+            else:
+                flash("При переименовании списка возникла ошибка", category="danger")
+
+        else:
+            flash_errors_from_form(form)
+
+        redirect_url = session.get(
+            "redirect_url_after_renaming_shopping_list",
+            url_for("show_my_shopping_lists"),
+        )
+        return redirect(redirect_url)
+
+    @app.route("/my-lists/<public_id>")
     def show_shopping_list(public_id):
-        form = AddShoppingItem()
+        session["redirect_url_after_renaming_shopping_list"] = url_for(
+            "show_shopping_list", public_id=public_id
+        )
+
+        add_shopping_item_form = AddShoppingItem()
+        rename_shopping_list_form = RenameElement()
+
         shopping_list = ShoppingList.query.filter(
             ShoppingList.public_id == public_id
         ).one_or_none()
-        shopping_list_id = shopping_list.id
-        shopping_items = ShoppingItem.query.filter(
-            ShoppingItem.shopping_list_id == shopping_list_id
-        ).all()
+
         if shopping_list:
+            shopping_list_id = shopping_list.id
             page_title = shopping_list.name
+            shopping_items = (
+                ShoppingItem.query.filter(
+                    ShoppingItem.shopping_list_id == shopping_list_id
+                )
+                .order_by(ShoppingItem.checked, ShoppingItem.name)
+                .all()
+            )
             return render_template(
                 "shopping_list.html",
                 page_title=page_title,
-                form=form,
+                add_shopping_item_form=add_shopping_item_form,
+                rename_shopping_list_form=rename_shopping_list_form,
+                shopping_list_id=shopping_list_id,
                 shopping_list_public_id=public_id,
                 shopping_items=shopping_items,
             )
-        else:
-            flash("При создании списка возникла ошибка", category="danger")
-            return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/add-item/<shopping_list_public_id>", methods=["GET", "POST"])
+        flash("При показе списка возникла ошибка", category="danger")
+        return redirect(url_for("show_my_shopping_lists"))
+
+    @app.route("/add-item/<shopping_list_public_id>", methods=["POST"])
     def add_item_to_shopping_list(shopping_list_public_id):
         form = AddShoppingItem()
+
         if form.validate_on_submit():
             shopping_list = ShoppingList.query.filter(
                 ShoppingList.public_id == shopping_list_public_id
             ).one_or_none()
-            shopping_list_id = shopping_list.id
-            new_item = ShoppingItem(
-                name=form.name.data, shopping_list_id=shopping_list_id
-            )
-            db.session.add(new_item)
-            db.session.commit()
-            flash("Новый продукт успешно добавлен", category="success")
+
+            if shopping_list:
+                shopping_list_id = shopping_list.id
+                new_item = ShoppingItem(
+                    name=form.name.data, shopping_list_id=shopping_list_id
+                )
+                db.session.add(new_item)
+                db.session.commit()
+                flash("Новый продукт успешно добавлен", category="success")
+
+            else:
+                flash("При добавлении продукта возникла ошибка", category="danger")
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(
-                        'Ошибка в поле "{}": {}'.format(
-                            getattr(form, field).label.text, error, category="danger"
-                        )
-                    )
+            flash_errors_from_form(form)
 
         return redirect(
             url_for("show_shopping_list", public_id=shopping_list_public_id)
@@ -364,7 +425,6 @@ def create_app():
         ).one_or_none()
 
         if item_to_delete:
-            print(item_to_delete)
             db.session.delete(item_to_delete)
             db.session.commit()
             flash("Продукт удалён", category="success")
@@ -374,6 +434,21 @@ def create_app():
         return redirect(
             url_for("show_shopping_list", public_id=shopping_list_public_id)
         )
+
+    @app.route("/shopping-item-checkbox", methods=["POST"])
+    def shopping_item_checkbox():
+        item_id = request.form.get("item_id")
+
+        item_to_check = ShoppingItem.query.filter(
+            ShoppingItem.id == item_id
+        ).one_or_none()
+
+        if item_to_check:
+            item_to_check.checked = int(request.form.get("state_of_checkbox"))
+            db.session.commit()
+            return "ok"
+        else:
+            return "failed"
 
     return app
 

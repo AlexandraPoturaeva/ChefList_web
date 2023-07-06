@@ -1,0 +1,8 @@
+Рецепт: {{ to_view["name"] }}<br />
+Категория рецепта: {{ to_view["category"] }}<br />
+Описание: {{ to_view["description"] }}<br />
+Время на подготовку: {{ to_view["preparation_time"]}}<br />
+Время на приготовление: {{ to_view["cooking_time"]}}<br />
+Для приготовления Вам потребуется:<br />
+{% for ingredient in to_view["ingredients"] %} {{ ingredient }}<br />
+{% endfor %}
