@@ -300,17 +300,31 @@ def create_app():
     def create_new_shopping_list():
         form = CreateListForm()
         public_id = str(uuid4())
-        user_id = current_user.id
+        user = current_user
+
         if form.validate_on_submit():
-            new_shopping_list = ShoppingList(
-                name=form.name.data, user_id=user_id, public_id=public_id
-            )
-            db.session.add(new_shopping_list)
-            db.session.commit()
-            flash("Новый список успешно создан", category="success")
-            return redirect(url_for("show_shopping_list", public_id=public_id))
+            new_shopping_list_name = form.name.data
+
+            shopping_list_already_exists = ShoppingList.query.filter(
+                ShoppingList.name == new_shopping_list_name,
+                ShoppingList.user_id == current_user.id,
+            ).one_or_none()
+
+            if shopping_list_already_exists:
+                flash("Список покупок с таким именем уже существует", category="danger")
+
+            else:
+                new_shopping_list = ShoppingList(
+                    name=new_shopping_list_name, user_id=user.id, public_id=public_id
+                )
+                db.session.add(new_shopping_list)
+                db.session.commit()
+                flash("Новый список успешно создан", category="success")
+                return redirect(url_for("show_shopping_list", public_id=public_id))
+
         else:
             flash_errors_from_form(form)
+
         return redirect(url_for("show_my_shopping_lists"))
 
     @app.route("/delete-shopping-list/<shopping_list_id>")
