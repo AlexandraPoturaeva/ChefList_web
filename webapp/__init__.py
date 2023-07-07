@@ -101,7 +101,6 @@ def create_app(database_uri=database_uri):
                 else:
                     flash("Неверный пароль", category="danger")
             else:
-                result = "Пользователь с таким email не зарегистрирован"
                 flash(
                     "Пользователь с таким email не зарегистрирован", category="danger"
                 )
