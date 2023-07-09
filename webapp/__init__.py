@@ -26,6 +26,11 @@ from webapp.model import (
     ShoppingItem,
 )
 from uuid import uuid4
+import os
+
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+database_uri = "sqlite:///" + os.path.join(basedir, "..", "webapp.db")
 
 
 def flash_errors_from_form(form):
@@ -37,8 +42,9 @@ def flash_errors_from_form(form):
             )
 
 
-def create_app():
+def create_app(database_uri=database_uri):
     app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config.from_pyfile("config.py")
     db.init_app(app)
     login_manager = LoginManager()
