@@ -7,13 +7,13 @@ from flask_login import (
     logout_user,
 )
 from webapp.forms import (
+    AddIngredientForm,
+    AddRecipeForm,
+    AddShoppingItem,
+    CreateListForm,
     LoginForm,
     RegistrationForm,
     RenameElement,
-    AddIngredientForm,
-    AddRecipeForm,
-    CreateListForm,
-    AddShoppingItem,
 )
 from webapp.model import (
     db,
@@ -28,6 +28,11 @@ from webapp.model import (
     PRODUCT_CATEGORIES,
 )
 from uuid import uuid4
+import os
+
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+database_uri = "sqlite:///" + os.path.join(basedir, "..", "webapp.db")
 
 
 def flash_errors_from_form(form):
@@ -39,8 +44,9 @@ def flash_errors_from_form(form):
             )
 
 
-def create_app():
+def create_app(database_uri=database_uri):
     app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config.from_pyfile("config.py")
     db.init_app(app)
     login_manager = LoginManager()
@@ -106,14 +112,12 @@ def create_app():
     @app.route("/profile")
     @login_required
     def profile():
-        email = current_user.email
-        created_at = current_user.created_at.strftime("%d.%m.%Y")
+        user = current_user
         title = "Моя страница"
         return render_template(
             "profile.html",
             page_title=title,
-            user_email=email,
-            user_created_at=created_at,
+            user=user,
         )
 
     @app.route("/logout")
@@ -330,10 +334,8 @@ def create_app():
         )
         create_shopping_list_form = CreateListForm()
         rename_shopping_list_form = RenameElement()
-        user_id = current_user.id
-        user_shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == user_id
-        ).all()
+        user = current_user
+        user_shopping_lists = user.shopping_lists
         title = "Мои списки покупок"
         return render_template(
             "my_shopping_lists.html",
@@ -343,24 +345,38 @@ def create_app():
             page_title=title,
         )
 
-    @app.route("/create-new-list", methods=["GET", "POST"])
+    @app.route("/create-new-list", methods=["POST"])
     def create_new_shopping_list():
         form = CreateListForm()
         public_id = str(uuid4())
-        user_id = current_user.id
+        user = current_user
+
         if form.validate_on_submit():
-            new_shopping_list = ShoppingList(
-                name=form.name.data, user_id=user_id, public_id=public_id
-            )
-            db.session.add(new_shopping_list)
-            db.session.commit()
-            flash("Новый список успешно создан", category="success")
-            return redirect(url_for("show_shopping_list", public_id=public_id))
+            new_shopping_list_name = form.name.data
+
+            shopping_list_already_exists = ShoppingList.query.filter(
+                ShoppingList.name == new_shopping_list_name,
+                ShoppingList.user_id == current_user.id,
+            ).one_or_none()
+
+            if shopping_list_already_exists:
+                flash("Список покупок с таким именем уже существует", category="danger")
+
+            else:
+                new_shopping_list = ShoppingList(
+                    name=new_shopping_list_name, user_id=user.id, public_id=public_id
+                )
+                db.session.add(new_shopping_list)
+                db.session.commit()
+                flash("Новый список успешно создан", category="success")
+                return redirect(url_for("show_shopping_list", public_id=public_id))
+
         else:
             flash_errors_from_form(form)
+
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/delete-shopping-list/<shopping_list_id>", methods=["GET", "POST"])
+    @app.route("/delete-shopping-list/<shopping_list_id>")
     def delete_shopping_list(shopping_list_id):
         shopping_list_to_delete = ShoppingList.query.filter(
             ShoppingList.id == shopping_list_id
@@ -396,14 +412,13 @@ def create_app():
         else:
             flash_errors_from_form(form)
 
-        redirect_url = session.get("redirect_url_after_renaming_shopping_list")
-
-        if not redirect_url:
-            return redirect(url_for("show_my_shopping_lists"))
-
+        redirect_url = session.get(
+            "redirect_url_after_renaming_shopping_list",
+            url_for("show_my_shopping_lists"),
+        )
         return redirect(redirect_url)
 
-    @app.route("/my-lists/<public_id>", methods=["GET", "POST"])
+    @app.route("/my-lists/<public_id>")
     def show_shopping_list(public_id):
         session["redirect_url_after_renaming_shopping_list"] = url_for(
             "show_shopping_list", public_id=public_id
@@ -417,25 +432,17 @@ def create_app():
         ).one_or_none()
 
         if shopping_list:
-            shopping_list_id = shopping_list.id
-            page_title = shopping_list.name
-            shopping_items = ShoppingItem.query.filter(
-                ShoppingItem.shopping_list_id == shopping_list_id
-            ).all()
             return render_template(
                 "shopping_list.html",
-                page_title=page_title,
                 add_shopping_item_form=add_shopping_item_form,
                 rename_shopping_list_form=rename_shopping_list_form,
-                shopping_list_id=shopping_list_id,
-                shopping_list_public_id=public_id,
-                shopping_items=shopping_items,
+                shopping_list=shopping_list,
             )
 
         flash("При показе списка возникла ошибка", category="danger")
         return redirect(url_for("show_my_shopping_lists"))
 
-    @app.route("/add-item/<shopping_list_public_id>", methods=["GET", "POST"])
+    @app.route("/add-item/<shopping_list_public_id>", methods=["POST"])
     def add_item_to_shopping_list(shopping_list_public_id):
         form = AddShoppingItem()
 
@@ -447,7 +454,9 @@ def create_app():
             if shopping_list:
                 shopping_list_id = shopping_list.id
                 new_item = ShoppingItem(
-                    name=form.name.data, shopping_list_id=shopping_list_id
+                    name=form.name.data,
+                    quantity=form.quantity.data,
+                    shopping_list_id=shopping_list_id,
                 )
                 db.session.add(new_item)
                 db.session.commit()
@@ -478,6 +487,21 @@ def create_app():
         return redirect(
             url_for("show_shopping_list", public_id=shopping_list_public_id)
         )
+
+    @app.route("/shopping-item-checkbox", methods=["POST"])
+    def shopping_item_checkbox():
+        item_id = request.form.get("item_id")
+
+        item_to_check = ShoppingItem.query.filter(
+            ShoppingItem.id == item_id
+        ).one_or_none()
+
+        if item_to_check:
+            item_to_check.checked = int(request.form.get("state_of_checkbox"))
+            db.session.commit()
+            return "ok"
+        else:
+            return "failed"
 
     return app
 
