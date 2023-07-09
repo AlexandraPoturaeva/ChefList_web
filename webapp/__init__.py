@@ -26,6 +26,11 @@ from webapp.model import (
     ShoppingItem,
 )
 from uuid import uuid4
+import os
+
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+database_uri = "sqlite:///" + os.path.join(basedir, "..", "webapp.db")
 
 
 def flash_errors_from_form(form):
@@ -37,8 +42,9 @@ def flash_errors_from_form(form):
             )
 
 
-def create_app():
+def create_app(database_uri=database_uri):
     app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config.from_pyfile("config.py")
     db.init_app(app)
     login_manager = LoginManager()
@@ -296,17 +302,31 @@ def create_app():
     def create_new_shopping_list():
         form = CreateListForm()
         public_id = str(uuid4())
-        user_id = current_user.id
+        user = current_user
+
         if form.validate_on_submit():
-            new_shopping_list = ShoppingList(
-                name=form.name.data, user_id=user_id, public_id=public_id
-            )
-            db.session.add(new_shopping_list)
-            db.session.commit()
-            flash("Новый список успешно создан", category="success")
-            return redirect(url_for("show_shopping_list", public_id=public_id))
+            new_shopping_list_name = form.name.data
+
+            shopping_list_already_exists = ShoppingList.query.filter(
+                ShoppingList.name == new_shopping_list_name,
+                ShoppingList.user_id == current_user.id,
+            ).one_or_none()
+
+            if shopping_list_already_exists:
+                flash("Список покупок с таким именем уже существует", category="danger")
+
+            else:
+                new_shopping_list = ShoppingList(
+                    name=new_shopping_list_name, user_id=user.id, public_id=public_id
+                )
+                db.session.add(new_shopping_list)
+                db.session.commit()
+                flash("Новый список успешно создан", category="success")
+                return redirect(url_for("show_shopping_list", public_id=public_id))
+
         else:
             flash_errors_from_form(form)
+
         return redirect(url_for("show_my_shopping_lists"))
 
     @app.route("/delete-shopping-list/<shopping_list_id>")
@@ -387,7 +407,9 @@ def create_app():
             if shopping_list:
                 shopping_list_id = shopping_list.id
                 new_item = ShoppingItem(
-                    name=form.name.data, shopping_list_id=shopping_list_id
+                    name=form.name.data,
+                    quantity=form.quantity.data,
+                    shopping_list_id=shopping_list_id,
                 )
                 db.session.add(new_item)
                 db.session.commit()
