@@ -423,7 +423,9 @@ def create_app(database_uri=database_uri):
             if shopping_list:
                 shopping_list_id = shopping_list.id
                 new_item = ShoppingItem(
-                    name=form.name.data, shopping_list_id=shopping_list_id
+                    name=form.name.data,
+                    quantity=form.quantity.data,
+                    shopping_list_id=shopping_list_id,
                 )
                 db.session.add(new_item)
                 db.session.commit()

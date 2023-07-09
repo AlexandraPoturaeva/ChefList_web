@@ -13,8 +13,9 @@ from wtforms.validators import (
     DataRequired,
     Email,
     EqualTo,
-    ValidationError,
     NumberRange,
+    Optional,
+    ValidationError,
 )
 
 
@@ -149,4 +150,11 @@ class AddShoppingItem(FlaskForm):
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
+
+    quantity = FloatField(
+        "Количество",
+        validators=[Optional(), NumberRange(min=0)],
+        render_kw={"class": "form-control"},
+    )
+
     submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
