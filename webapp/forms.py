@@ -84,7 +84,9 @@ class AddIngredientForm(FlaskForm):
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
-    add = SubmitField("Добавить", render_kw={"class": "btn btn-primary w-100 py-2"})
+    add = SubmitField(
+        "Добавить", render_kw={"class": "btn btn-outline-primary w-100 py-2"}
+    )
 
 
 class AddRecipeForm(FlaskForm):
@@ -105,17 +107,18 @@ class AddRecipeForm(FlaskForm):
         render_kw={"class": "form-control"},
     )
     preparation_time = StringField(
-        "Время на подготовку",
+        "Время на подготовку, мин",
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
     cooking_time = StringField(
-        "Время на приготовление",
+        "Время на приготовление, мин",
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
     create = SubmitField(
-        "Создать рецепт", render_kw={"class": "btn btn-primary w-100 py-2"}
+        "Создать рецепт и перейти к добавлению ингредиентов",
+        render_kw={"class": "btn btn-success w-100 py-2"},
     )
 
 
