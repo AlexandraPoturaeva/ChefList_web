@@ -11,6 +11,7 @@ from webapp.forms import (
     AddRecipeForm,
     AddShoppingItem,
     CreateListForm,
+    EditQuantityOfShoppingItemForm,
     LoginForm,
     RegistrationForm,
     RenameElement,
@@ -349,7 +350,7 @@ def create_app(database_uri=database_uri):
         form = RenameElement()
 
         if form.validate_on_submit():
-            new_name = form.new_name.data
+            new_name = form.new_value.data
             shopping_list_id = form.element_id.data
             shopping_list_to_rename = ShoppingList.query.filter(
                 ShoppingList.id == shopping_list_id
@@ -379,6 +380,7 @@ def create_app(database_uri=database_uri):
 
         add_shopping_item_form = AddShoppingItem()
         rename_shopping_list_form = RenameElement()
+        edit_quantity_of_shopping_item_form = EditQuantityOfShoppingItemForm()
 
         shopping_list = ShoppingList.query.filter(
             ShoppingList.public_id == public_id
@@ -389,6 +391,7 @@ def create_app(database_uri=database_uri):
                 "shopping_list.html",
                 add_shopping_item_form=add_shopping_item_form,
                 rename_shopping_list_form=rename_shopping_list_form,
+                edit_quantity_of_shopping_item_form=edit_quantity_of_shopping_item_form,
                 shopping_list=shopping_list,
             )
 
@@ -455,6 +458,33 @@ def create_app(database_uri=database_uri):
             return "ok"
         else:
             return "failed"
+
+    @app.route("/edit-quantity-of-shopping-item", methods=["POST"])
+    def edit_quantity_of_shopping_item():
+        form = EditQuantityOfShoppingItemForm()
+
+        if form.validate_on_submit():
+            new_quantity = form.new_value.data
+            shopping_item_id = form.element_id.data
+            shopping_item_to_edit_quantity = ShoppingItem.query.filter(
+                ShoppingItem.id == shopping_item_id
+            ).one_or_none()
+
+            if shopping_item_to_edit_quantity:
+                shopping_item_to_edit_quantity.quantity = new_quantity
+                db.session.commit()
+                flash("Количество изменено", category="success")
+            else:
+                flash("При изменении количества возникла ошибка", category="danger")
+
+        else:
+            flash_errors_from_form(form)
+
+        redirect_url = session.get(
+            "redirect_url_after_renaming_shopping_list",
+            url_for("show_my_shopping_lists"),
+        )
+        return redirect(redirect_url)
 
     return app
 
