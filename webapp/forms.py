@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from webapp.model import User, RECIPE_CATEGORIES, PRODUCT_CATEGORIES
+from webapp.model import User, RECIPE_CATEGORIES, PRODUCT_CATEGORIES, UNITS
 from wtforms import (
     StringField,
     PasswordField,
@@ -8,6 +8,7 @@ from wtforms import (
     FloatField,
     SelectField,
     HiddenField,
+    IntegerField,
 )
 from wtforms.validators import (
     DataRequired,
@@ -74,13 +75,14 @@ class AddIngredientForm(FlaskForm):
     quantity = FloatField(
         "Количество",
         validators=[
-            DataRequired(),
             NumberRange(min=0),
+            DataRequired(),
         ],
         render_kw={"class": "form-control"},
     )
-    unit = StringField(
+    unit = SelectField(
         "Единица измерения",
+        choices=UNITS,
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
@@ -104,14 +106,20 @@ class AddRecipeForm(FlaskForm):
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
-    preparation_time = StringField(
+    preparation_time = IntegerField(
         "Время на подготовку",
-        validators=[DataRequired()],
+        validators=[
+            DataRequired(),
+            NumberRange(min=0),
+        ],
         render_kw={"class": "form-control"},
     )
-    cooking_time = StringField(
+    cooking_time = IntegerField(
         "Время на приготовление",
-        validators=[DataRequired()],
+        validators=[
+            DataRequired(),
+            NumberRange(min=0),
+        ],
         render_kw={"class": "form-control"},
     )
     create = SubmitField(

@@ -20,7 +20,7 @@ from webapp.model import (
     User,
     Ingredient,
     Product,
-    Unit,
+    UNITS,
     Recipe,
     ShoppingList,
     ShoppingItem,
@@ -245,14 +245,7 @@ def create_app(database_uri=database_uri):
 
         form = AddIngredientForm()
         if form.validate_on_submit():
-            unit = Unit.query.filter(Unit.name == form.unit.data).one_or_none()
-            if not unit:
-                unit = Unit(name=form.unit.data)
-                db.session.add(unit)
-                db.session.commit()
-                unit_id = Unit.query.filter(Unit.name == form.unit.data).one().id
-            else:
-                unit_id = unit.id
+            unit = form.unit.data
 
             product = Product.query.filter(
                 Product.name == form.product.data
@@ -272,7 +265,7 @@ def create_app(database_uri=database_uri):
             ingredient = Ingredient(
                 product_id=product_id,
                 quantity=quantity,
-                unit_id=unit_id,
+                unit=unit,
                 recipe_id=recipe.id,
             )
 
