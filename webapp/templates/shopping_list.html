@@ -16,7 +16,7 @@
     </div>
     <div class="p-2"></div>
     <div class="row align-items-center justify-content-md-center">
-        <form action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list_public_id) }}"
+        <form class="add-item-form" action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
               method="POST">
             {{ add_shopping_item_form.csrf_token }}
             <div class="row justify-content-md-center">
@@ -32,7 +32,7 @@
             </div>
         </form>
     </div>
-    <div class="p-3"></div>
+    <div class="p-3 text-center space-for-messages"></div>
     <div class="row justify-content-md-center">
         <div class="col-auto"></div>
         <div class="col-6">
@@ -47,7 +47,7 @@
                                    {%if item.checked %} checked="checked" {% endif %}
                             >
                             <label
-                                    class="form-check-label {%if item.checked %} text-decoration-line-through {% endif %}"
+                                    class="form-check-label {%if item.checked %} text-decoration-line-through {% endif %} item-name"
                                     for="check_item_{{ item.id }}">{{ item.name }}
                             </label>
                         </div>

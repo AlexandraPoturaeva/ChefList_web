@@ -148,7 +148,7 @@ class AddShoppingItem(FlaskForm):
     name = StringField(
         "Название продукта",
         validators=[DataRequired()],
-        render_kw={"class": "form-control"},
+        render_kw={"class": "form-control", "id": "new_item_name"},
     )
 
     quantity = FloatField(
@@ -157,4 +157,7 @@ class AddShoppingItem(FlaskForm):
         render_kw={"class": "form-control"},
     )
 
-    submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
+    submit = SubmitField(
+        "Добавить",
+        render_kw={"class": "btn btn-primary"},
+    )
