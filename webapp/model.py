@@ -30,6 +30,20 @@ RECIPE_CATEGORIES = {
     "Блины и оладьи": "BurlyWood",
 }
 
+UNITS = [
+    "г",
+    "мл",
+    "шт",
+    "л",
+    "кг",
+    "столовая ложка",
+    "чайная ложка",
+    "стакан",
+    "по вкусу",
+    "зубчик",
+    "веточка",
+]
+
 
 class User(db.Model, UserMixin):
     __tablename__ = "user"
@@ -53,14 +67,6 @@ class User(db.Model, UserMixin):
             f"\nname: {self.name}"
             f"\ncreated_at {self.created_at}"
         )
-
-
-class Unit(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, unique=True, index=True)
-
-    def __repr__(self):
-        return f"<Unit: {self.name}>"
 
 
 class Product(db.Model):
@@ -90,13 +96,12 @@ class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey("product.id"))
     quantity = db.Column(db.Float, nullable=False)
-    unit_id = db.Column(db.Integer, db.ForeignKey("unit.id"))
+    unit = db.Column(db.Text)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
     def __str__(self):
         product_name = db.session.query(Product).get(self.product_id).name
-        unit_name = db.session.query(Unit).get(self.unit_id).name
-        return f"{product_name}, {self.quantity} {unit_name}"
+        return f"{product_name}, {self.quantity} {self.unit}"
 
     def __repr__(self):
         return f"<Ingredient: {self.product_id} for recipe {self.recipe_id}>"

@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block content %}
 <form action=" {{ url_for('add_recipe') }}" method="POST">
   {{ form.hidden_tag() }}
-  <h2>Добавление рецепта</h2>
+  <h2>Создание рецепта</h2>
   <div class="p-2"></div>
   <div class="form-floating mb-3">
     {{ form.name(placeholder="Название рецепта") }} {{

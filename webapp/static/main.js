@@ -103,6 +103,42 @@ on a input (checkbox) with class ended with "check-item".
             }
         );
     });
+
+/*
+The code below is an event handler to the "submit" event
+in the form containing "add-item-form" in it's class.
+Function compares text got from the field with id "new_item_name"
+with each label with class containing "item-name".
+
+If these texts are equal to each other, function:
+ 1. adds 'list-group-item-danger' to the class of 'li.shopping-list-item'
+ 2. puts a message "Такой продукт уже есть в списке" into a "div.space-for-messages"
+ 3. prevents submitting of the form
+ 4. stops iteration
+*/
+
+    $(".add-item-form").submit(function(e) {
+        var new_item_name = $("#new_item_name").val();
+
+        $('label.item-name').each(function() {
+            var item_name = $(this).text().trim();
+
+            if (item_name == new_item_name) {
+
+                let li = $(this).parents('li.shopping-list-item')
+                li.addClass('list-group-item-danger');
+                $('.space-for-messages').text('Такой продукт уже есть в списке').css("color", "red")
+
+                setTimeout(function() {
+                    li.removeClass('list-group-item-danger');
+                    $('.space-for-messages').empty();
+                    }, 3000);
+
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
 });
 
 
