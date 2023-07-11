@@ -48,7 +48,7 @@ def flash_errors_from_form(form):
 def create_app(database_uri=database_uri):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-    app.config.from_pyfile("config.py")
+    app.config.from_pyfile("/etc/secrets/config.py")
     db.init_app(app)
     login_manager = LoginManager()
     login_manager.init_app(app)
