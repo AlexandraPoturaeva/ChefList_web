@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from webapp.model import User, RECIPE_CATEGORIES, PRODUCT_CATEGORIES
+from webapp.model import User, RECIPE_CATEGORIES, PRODUCT_CATEGORIES, UNITS
 from wtforms import (
     StringField,
     PasswordField,
@@ -8,6 +8,7 @@ from wtforms import (
     FloatField,
     SelectField,
     HiddenField,
+    IntegerField,
 )
 from wtforms.validators import (
     DataRequired,
@@ -74,13 +75,14 @@ class AddIngredientForm(FlaskForm):
     quantity = FloatField(
         "Количество",
         validators=[
-            DataRequired(),
             NumberRange(min=0),
+            DataRequired(),
         ],
         render_kw={"class": "form-control"},
     )
-    unit = StringField(
+    unit = SelectField(
         "Единица измерения",
+        choices=UNITS,
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
@@ -132,7 +134,7 @@ class CreateListForm(FlaskForm):
 
 
 class RenameElement(FlaskForm):
-    new_name = StringField(
+    new_value = StringField(
         "Новое название",
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
@@ -151,7 +153,7 @@ class AddShoppingItem(FlaskForm):
     name = StringField(
         "Название продукта",
         validators=[DataRequired()],
-        render_kw={"class": "form-control"},
+        render_kw={"class": "form-control", "id": "new_item_name"},
     )
 
     quantity = FloatField(
@@ -161,3 +163,19 @@ class AddShoppingItem(FlaskForm):
     )
 
     submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
+
+
+class EditQuantityOfShoppingItemForm(FlaskForm):
+    new_value = FloatField(
+        "Количество",
+        validators=[Optional(), NumberRange(min=0)],
+        render_kw={"class": "form-control"},
+    )
+
+    element_id = HiddenField(
+        "element_id",
+        validators=[DataRequired()],
+        render_kw={"id": "element_id"},
+    )
+
+    submit = SubmitField("Изменить", render_kw={"class": "btn btn-primary"})
