@@ -32,8 +32,7 @@ from uuid import uuid4
 import os
 
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-database_uri = "sqlite:///" + os.path.join(basedir, "..", "webapp.db")
+database_uri = os.environ.get("DATABASE_URL")
 
 
 def flash_errors_from_form(form):
