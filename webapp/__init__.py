@@ -57,7 +57,7 @@ def create_app(database_uri=database_uri):
 
     @app.route("/")
     def index():
-        return render_template("index.html", unauthorized=current_user.is_anonymous)
+        return render_template("index.html")
 
     @app.route("/registration")
     def registration():
@@ -67,7 +67,6 @@ def create_app(database_uri=database_uri):
             "registration.html",
             form=form,
             page_title=title,
-            unauthorized=current_user.is_anonymous,
         )
 
     @app.route("/process-reg", methods=["POST"])
@@ -110,9 +109,7 @@ def create_app(database_uri=database_uri):
                     "Пользователь с таким email не зарегистрирован", category="danger"
                 )
 
-        return render_template(
-            "login.html", form=form, unauthorized=current_user.is_anonymous
-        )
+        return render_template("login.html", form=form)
 
     @app.route("/profile")
     @login_required
@@ -397,7 +394,6 @@ def create_app(database_uri=database_uri):
                 add_shopping_item_form=add_shopping_item_form,
                 rename_shopping_list_form=rename_shopping_list_form,
                 shopping_list=shopping_list,
-                unauthorized=current_user.is_anonymous,
             )
 
         flash("При показе списка возникла ошибка", category="danger")

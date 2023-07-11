@@ -276,7 +276,7 @@
           </ul>
 
           <form class="d-flex" role="search">
-            {% if unauthorized %}
+            {% if current_user.is_anonymous %}
             <a
               class="btn btn-outline-success"
               href="{{ url_for('registration') }}"
