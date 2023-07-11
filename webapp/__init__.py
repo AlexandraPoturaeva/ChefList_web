@@ -11,6 +11,7 @@ from webapp.forms import (
     AddRecipeForm,
     AddShoppingItem,
     CreateListForm,
+    EditQuantityOfShoppingItemForm,
     LoginForm,
     RegistrationForm,
     RenameElement,
@@ -24,6 +25,8 @@ from webapp.model import (
     Recipe,
     ShoppingList,
     ShoppingItem,
+    RECIPE_CATEGORIES,
+    PRODUCT_CATEGORIES,
 )
 from uuid import uuid4
 import os
@@ -127,7 +130,18 @@ def create_app(database_uri=database_uri):
 
     @app.route("/recipes")
     def recipes():
-        return "Страница с рецептами"  # TODO: Сделать реальную страницу
+        admin = User.query.filter(User.name == "admin").one_or_none()
+        if admin:
+            public_recipes = Recipe.query.filter(Recipe.user_id == admin.id).all()
+            return render_template("public_recipes.html", public_recipes=public_recipes)
+        else:
+            flash("Нет общедоступных рецептов!", category="danger")
+            return redirect(url_for("index"))
+
+    @app.route("/my_recipes")
+    def my_recipes():
+        user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
+        return render_template("my_recipes.html", user_recipes=user_recipes)
 
     @app.route("/add_recipe", methods=["POST", "GET"])
     @login_required
@@ -174,7 +188,14 @@ def create_app(database_uri=database_uri):
                 .id
             )
 
-            return redirect(url_for("add_ingredient", recipe_id=recipe_id))
+            return redirect(
+                url_for(
+                    "add_ingredient",
+                    recipe_id=recipe_id,
+                    RECIPE_CATEGORIES=RECIPE_CATEGORIES,
+                    PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+                )
+            )
         else:
             flash_errors_from_form(form)
         return redirect(url_for("recipe", recipe_id=recipe_id))
@@ -188,7 +209,7 @@ def create_app(database_uri=database_uri):
             print(recipe)
         except:
             flash("Неверный идентификатор рецепта")
-            return redirect(url_for("recipes"))
+            return redirect(url_for("my_recipes"))
 
         to_view = {}
         to_view["name"] = recipe.name
@@ -196,8 +217,14 @@ def create_app(database_uri=database_uri):
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
+        to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
+
         ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
-        to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
+        to_view["ingredients"] = []
+        for ingredient in ingredients:
+            category = Product.query.get(ingredient.product_id).category
+            color = PRODUCT_CATEGORIES[category].lower()
+            to_view["ingredients"].append((str(ingredient), color))
 
         if request.method == "GET":
             recipe_name = db.session.query(Recipe).get(recipe_id).name
@@ -254,11 +281,20 @@ def create_app(database_uri=database_uri):
             db.session.commit()
             flash("Ингредиент добавлен", category="info")
             return redirect(
-                url_for("add_ingredient", recipe_id=recipe.id, to_view=to_view)
+                url_for(
+                    "add_ingredient",
+                    recipe_id=recipe.id,
+                    to_view=to_view,
+                )
             )
         else:
             flash_errors_from_form(form)
-        return redirect(url_for("add_ingredient", recipe_id=recipe.id))
+        return redirect(
+            url_for(
+                "add_ingredient",
+                recipe_id=recipe.id,
+            )
+        )
 
     @app.route("/recipe/<int:recipe_id>")
     @login_required
@@ -273,11 +309,23 @@ def create_app(database_uri=database_uri):
         to_view["description"] = recipe.description
         to_view["cooking_time"] = recipe.cooking_time
         to_view["preparation_time"] = recipe.preparation_time
-        ingredients = (
-            db.session.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
+        to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
+
+        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
+        to_view["ingredients"] = []
+        for ingredient in ingredients:
+            category = Product.query.get(ingredient.product_id).category
+            color = PRODUCT_CATEGORIES[category].lower()
+            to_view["ingredients"].append((str(ingredient), color))
+        return render_template(
+            "recipe.html",
+            to_view=to_view,
         )
-        to_view["ingredients"] = [str(ingredient) for ingredient in ingredients]
-        return render_template("recipe.html", to_view=to_view)
+
+    @app.route("/delete_recipe/<int:recipe_id>")
+    @login_required
+    def delete_recipe(recipe_id):
+        return redirect(url_for("recipe", recipe_id=recipe_id))
 
     @app.route("/my-lists")
     @login_required
@@ -349,7 +397,7 @@ def create_app(database_uri=database_uri):
         form = RenameElement()
 
         if form.validate_on_submit():
-            new_name = form.new_name.data
+            new_name = form.new_value.data
             shopping_list_id = form.element_id.data
             shopping_list_to_rename = ShoppingList.query.filter(
                 ShoppingList.id == shopping_list_id
@@ -379,6 +427,7 @@ def create_app(database_uri=database_uri):
 
         add_shopping_item_form = AddShoppingItem()
         rename_shopping_list_form = RenameElement()
+        edit_quantity_of_shopping_item_form = EditQuantityOfShoppingItemForm()
 
         shopping_list = ShoppingList.query.filter(
             ShoppingList.public_id == public_id
@@ -389,6 +438,7 @@ def create_app(database_uri=database_uri):
                 "shopping_list.html",
                 add_shopping_item_form=add_shopping_item_form,
                 rename_shopping_list_form=rename_shopping_list_form,
+                edit_quantity_of_shopping_item_form=edit_quantity_of_shopping_item_form,
                 shopping_list=shopping_list,
             )
 
@@ -455,6 +505,33 @@ def create_app(database_uri=database_uri):
             return "ok"
         else:
             return "failed"
+
+    @app.route("/edit-quantity-of-shopping-item", methods=["POST"])
+    def edit_quantity_of_shopping_item():
+        form = EditQuantityOfShoppingItemForm()
+
+        if form.validate_on_submit():
+            new_quantity = form.new_value.data
+            shopping_item_id = form.element_id.data
+            shopping_item_to_edit_quantity = ShoppingItem.query.filter(
+                ShoppingItem.id == shopping_item_id
+            ).one_or_none()
+
+            if shopping_item_to_edit_quantity:
+                shopping_item_to_edit_quantity.quantity = new_quantity
+                db.session.commit()
+                flash("Количество изменено", category="success")
+            else:
+                flash("При изменении количества возникла ошибка", category="danger")
+
+        else:
+            flash_errors_from_form(form)
+
+        redirect_url = session.get(
+            "redirect_url_after_renaming_shopping_list",
+            url_for("show_my_shopping_lists"),
+        )
+        return redirect(redirect_url)
 
     return app
 

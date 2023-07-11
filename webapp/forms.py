@@ -129,7 +129,7 @@ class CreateListForm(FlaskForm):
 
 
 class RenameElement(FlaskForm):
-    new_name = StringField(
+    new_value = StringField(
         "Новое название",
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
@@ -157,7 +157,20 @@ class AddShoppingItem(FlaskForm):
         render_kw={"class": "form-control"},
     )
 
-    submit = SubmitField(
-        "Добавить",
-        render_kw={"class": "btn btn-primary"},
+    submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
+
+
+class EditQuantityOfShoppingItemForm(FlaskForm):
+    new_value = FloatField(
+        "Количество",
+        validators=[Optional(), NumberRange(min=0)],
+        render_kw={"class": "form-control"},
     )
+
+    element_id = HiddenField(
+        "element_id",
+        validators=[DataRequired()],
+        render_kw={"id": "element_id"},
+    )
+
+    submit = SubmitField("Изменить", render_kw={"class": "btn btn-primary"})

@@ -15,7 +15,7 @@ options: search, sort, navigate through it's pages, choose how many entries to s
     $('#my_shopping_lists').DataTable(
         {
             "columnDefs": [
-                { "orderable": false, "targets": [2, 3, 4] } // set feature of sorting only for 2, 3, 4 columns
+                { "orderable": false, "targets": [1, 3, 4] } // set feature of sorting only for 2, 3, 4 columns
                 ],
             "order": [],
             "language": { // translate DataTable labels to Russian language
@@ -38,13 +38,24 @@ options: search, sort, navigate through it's pages, choose how many entries to s
 
 /*
 The code below is an event handler to the "click" event
-on the element (button) with id "rename_button".
+on the element (button) with id "rename_shopping_list_button".
 Function creates variable and assigns to it a value of element_id got from the button.
-After this function passes this data (element_id) to a form in the modal fade with id "rename_modal".
+After this function passes this data (element_id) to a form in the modal fade with id "rename_shopping_list_modal".
 */
-    $(document).on("click", "#rename_button", function () {
+    $(document).on("click", "#rename_shopping_list_button", function () {
          var element_id = $(this).data('id');
-         $("#rename_modal #element_id").val( element_id );
+         $("#rename_shopping_list_modal #element_id").val( element_id );
+    });
+
+/*
+The code below is an event handler to the "click" event
+on the element (button) with id "edit_quantity".
+Function creates variable and assigns to it a value of element_id got from the button.
+After this function passes this data (element_id) to a form in the modal fade with id "edit_quantity_modal".
+*/
+    $(document).on("click", "#edit_quantity", function () {
+         var element_id = $(this).data('id');
+         $("#edit_quantity_modal #element_id").val( element_id );
     });
 
 /*
