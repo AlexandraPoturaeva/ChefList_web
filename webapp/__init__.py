@@ -6,6 +6,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from flask_migrate import Migrate
 from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
@@ -31,7 +32,6 @@ from webapp.model import (
 from uuid import uuid4
 import os
 
-
 database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
 
@@ -49,7 +49,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config["SECRET_KEY"] = secret_key
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
+    migrate = Migrate(app, db)
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "login"
