@@ -127,4 +127,5 @@ class ShoppingItem(db.Model):
         db.Integer, db.ForeignKey("shopping_list.id"), nullable=False
     )
     quantity = db.Column(db.Float)
+    unit = db.Column(db.Text)
     checked = db.Column(db.Boolean, default=False)
