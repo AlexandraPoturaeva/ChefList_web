@@ -162,6 +162,13 @@ class AddShoppingItem(FlaskForm):
         render_kw={"class": "form-control"},
     )
 
+    unit = SelectField(
+        "Единица измерения",
+        choices=UNITS,
+        validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+
     submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
 
 

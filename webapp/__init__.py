@@ -449,13 +449,29 @@ def create_app(database_uri=database_uri):
 
             if shopping_list:
                 shopping_list_id = shopping_list.id
-                new_item = ShoppingItem(
-                    name=form.name.data,
-                    quantity=form.quantity.data,
-                    shopping_list_id=shopping_list_id,
-                )
-                db.session.add(new_item)
-                db.session.commit()
+                name = form.name.data
+                quantity = form.quantity.data
+                unit = form.unit.data
+
+                exist_item = ShoppingItem.query.filter(
+                    ShoppingItem.shopping_list_id == shopping_list_id,
+                    ShoppingItem.name == name,
+                    ShoppingItem.unit == unit,
+                ).one_or_none()
+
+                if exist_item:
+                    exist_item.quantity += quantity
+                    db.session.commit()
+                else:
+                    new_item = ShoppingItem(
+                        name=form.name.data,
+                        quantity=form.quantity.data,
+                        shopping_list_id=shopping_list_id,
+                        unit=form.unit.data,
+                    )
+                    db.session.add(new_item)
+                    db.session.commit()
+
                 flash("Новый продукт успешно добавлен", category="success")
 
             else:
