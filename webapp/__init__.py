@@ -33,6 +33,7 @@ import os
 
 
 database_uri = os.environ.get("DATABASE_URL")
+secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 
 def flash_errors_from_form(form):
@@ -44,10 +45,10 @@ def flash_errors_from_form(form):
             )
 
 
-def create_app(database_uri=database_uri):
+def create_app(database_uri=database_uri, secret_key=secret_key):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-    app.config.from_prefixed_env()
+    app.config["SECRET_KEY"] = secret_key
     db.init_app(app)
     login_manager = LoginManager()
     login_manager.init_app(app)

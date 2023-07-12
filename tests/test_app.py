@@ -6,7 +6,7 @@ from webapp.model import User
 
 @pytest.fixture()
 def app():
-    app = create_app(database_uri="sqlite://")
+    app = create_app(database_uri="sqlite://", secret_key="test_secret_key")
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
 
