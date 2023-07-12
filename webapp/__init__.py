@@ -1,8 +1,6 @@
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import (
     LoginManager,
@@ -35,8 +33,8 @@ from webapp.model import (
     PRODUCT_CATEGORIES,
 )
 from uuid import uuid4
-import os
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
 
