@@ -15,6 +15,7 @@ from webapp.forms import (
     LoginForm,
     RegistrationForm,
     RenameElement,
+    ChooseListForm,
 )
 from webapp.model import (
     db,
@@ -43,6 +44,37 @@ def flash_errors_from_form(form):
                 'Ошибка в поле "{}": {}'.format(getattr(form, field).label.text, error),
                 category="danger",
             )
+
+
+def update_item_to_shopping_list(shopping_list, name, quantity, unit):
+    exist_item = ShoppingItem.query.filter(
+        ShoppingItem.shopping_list_id == shopping_list.id,
+        ShoppingItem.name == name,
+        ShoppingItem.unit == unit,
+    ).one_or_none()
+
+    if exist_item:
+        exist_item.quantity += quantity
+        db.session.commit()
+    else:
+        new_item = ShoppingItem(
+            name=name,
+            quantity=quantity,
+            shopping_list_id=shopping_list.id,
+            unit=unit,
+        )
+        db.session.add(new_item)
+        db.session.commit()
+
+
+def update_recipe_to_shopping_list(shopping_list, recipe):
+    for ingredient in recipe.ingredients:
+        update_item_to_shopping_list(
+            shopping_list=shopping_list,
+            name=ingredient.product.name,
+            quantity=ingredient.quantity,
+            unit=ingredient.unit,
+        )
 
 
 def create_app(database_uri=database_uri):
@@ -304,6 +336,13 @@ def create_app(database_uri=database_uri):
         to_view["preparation_time"] = recipe.preparation_time
         to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
 
+        form = ChooseListForm()
+        shopping_lists = ShoppingList.query.filter(
+            ShoppingList.user_id == current_user.id
+        ).all()
+        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
+        form.name.choices = shopping_lists_names
+
         ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
         to_view["ingredients"] = []
         for ingredient in ingredients:
@@ -313,6 +352,8 @@ def create_app(database_uri=database_uri):
         return render_template(
             "recipe.html",
             to_view=to_view,
+            recipe=recipe,
+            form=form,
         )
 
     @app.route("/delete_recipe/<int:recipe_id>")
@@ -448,30 +489,12 @@ def create_app(database_uri=database_uri):
             ).one_or_none()
 
             if shopping_list:
-                shopping_list_id = shopping_list.id
-                name = form.name.data
-                quantity = form.quantity.data
-                unit = form.unit.data
-
-                exist_item = ShoppingItem.query.filter(
-                    ShoppingItem.shopping_list_id == shopping_list_id,
-                    ShoppingItem.name == name,
-                    ShoppingItem.unit == unit,
-                ).one_or_none()
-
-                if exist_item:
-                    exist_item.quantity += quantity
-                    db.session.commit()
-                else:
-                    new_item = ShoppingItem(
-                        name=form.name.data,
-                        quantity=form.quantity.data,
-                        shopping_list_id=shopping_list_id,
-                        unit=form.unit.data,
-                    )
-                    db.session.add(new_item)
-                    db.session.commit()
-
+                update_item_to_shopping_list(
+                    shopping_list=shopping_list,
+                    name=form.name.data,
+                    quantity=form.quantity.data,
+                    unit=form.unit.data,
+                )
                 flash("Новый продукт успешно добавлен", category="success")
 
             else:
@@ -541,6 +564,37 @@ def create_app(database_uri=database_uri):
             url_for("show_my_shopping_lists"),
         )
         return redirect(redirect_url)
+
+    @app.route("/add_recipe_to_shopping_list/<int:recipe_id>", methods=["POST"])
+    def add_recipe_to_shopping_list(recipe_id):
+        form = ChooseListForm()
+        shopping_lists = ShoppingList.query.filter(
+            ShoppingList.user_id == current_user.id
+        ).all()
+        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
+        form.name.choices = shopping_lists_names
+        if form.validate_on_submit():
+            chosen_shopping_list = ShoppingList.query.filter(
+                ShoppingList.name == form.name.data,
+                ShoppingList.user_id == current_user.id,
+            ).one()
+            recipe = Recipe.query.get(recipe_id)
+            update_recipe_to_shopping_list(
+                shopping_list=chosen_shopping_list, recipe=recipe
+            )
+            flash(
+                f"Ингредиенты рецепта добавлены в список {chosen_shopping_list.name}",
+                category="success",
+            )
+            return redirect(
+                url_for(
+                    "recipe",
+                    recipe_id=recipe.id,
+                )
+            )
+
+        else:
+            flash_errors_from_form(form)
 
     return app
 

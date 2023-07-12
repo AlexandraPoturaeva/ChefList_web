@@ -1,1 +1,42 @@
-{% extends "base.html" %} {% include 'static_recipe.html' %}
+{% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
+<div class="row">
+  <div class="col"></div>
+  <div class="col-5">
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#add_recipe_to_shopping_list"
+    >
+      Добавить рецепт в список покупок
+    </button>
+  </div>
+  <div class="col"></div>
+  <div
+    class="modal fade create-new-list"
+    id="add_recipe_to_shopping_list"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="col 12 text-center">
+            <form
+              action=" {{ url_for('add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
+              method="POST"
+            >
+              {{ form.hidden_tag() }}
+              <div class="form-floating mb-3">
+                {{ form.name(placeholder="Название списка") }} {{
+                form.name.label(class="form-label") }}
+              </div>
+              {{ form.submit }}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+</div>
