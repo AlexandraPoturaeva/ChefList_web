@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import (
     LoginManager,
@@ -47,9 +52,14 @@ def flash_errors_from_form(form):
 
 def create_app(database_uri=database_uri, secret_key=secret_key):
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-    app.config["SECRET_KEY"] = secret_key
+
+    if database_uri and secret_key:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+        app.config["SECRET_KEY"] = secret_key
+    else:
+        app.config.from_pyfile("config.py")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
     db.init_app(app)
     migrate = Migrate(app, db)
     login_manager = LoginManager()
