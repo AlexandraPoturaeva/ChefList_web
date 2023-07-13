@@ -60,6 +60,21 @@ def create_app(database_uri=database_uri):
 
     @app.route("/")
     def index():
+        if current_user.is_authenticated:
+            last_user_shopping_list = (
+                ShoppingList.query.filter(ShoppingList.user_id == current_user.id)
+                .order_by(ShoppingList.created_at.desc())
+                .first()
+            )
+
+            if last_user_shopping_list:
+                shopping_list_public_id = last_user_shopping_list.public_id
+                return redirect(
+                    url_for("show_shopping_list", public_id=shopping_list_public_id)
+                )
+            else:
+                return redirect(url_for("show_my_shopping_lists"))
+
         return render_template("index.html")
 
     @app.route("/registration")
@@ -88,7 +103,7 @@ def create_app(database_uri=database_uri):
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if current_user.is_authenticated:
-            return redirect(url_for("profile"))
+            return redirect(url_for("index"))
 
         form = LoginForm()
         email = form.email.data
@@ -100,7 +115,7 @@ def create_app(database_uri=database_uri):
                 if user.check_password(password):
                     login_user(user)
                     flash("Вы успешно вошли на сайт", category="success")
-                    return redirect(url_for("profile"))
+                    return redirect(url_for("index"))
                 else:
                     flash("Неверный пароль", category="danger")
             else:

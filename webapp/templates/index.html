@@ -1,12 +1,20 @@
 {% extends "base.html" %} {% block content %}
-<div class="bg-body-tertiary p-5 rounded">
-  <h1>Первый рецепт</h1>
-  <p class="lead">Нарезать хлеб, нарезать колбасу, положить колбасу на хлеб.</p>
-  <a class="btn btn-lg btn-primary" href="#" role="button"
-    >Добавить в список покупок
-  </a>
-  <a class="btn btn-lg btn-primary" href="#" role="button"
-    >Добавить в Мои рецепты
-  </a>
+<div class="container">
+    <div class="p-3"></div>
+    <h1 class="mt-5">ChefList</h1>
+    <p class="lead">Cайт для составления и хранения списков покупок и рецептов блюд</p>
+    <div class="card p-3 w-75 text-start">
+        <div class="card-body">
+            <h5 class="card-title">Этот сайт позволит Вам:</h5>
+        </div>
+        <ul class="list-group list-group-flush list-group-numbered">
+            <li class="list-group-item">Составлять списки покупок, чтобы ничего не забыть купить в магазине</li>
+            <li class="list-group-item">Удобно хранить свои любимые рецепты</li>
+            <li class="list-group-item">Быстро и просто добавлять ингредиенты блюд в списки покупок</li>
+        </ul>
+        <div class="card-body">
+            <a href="{{ url_for('registration') }}" class="btn btn-primary">Создать аккаунт</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

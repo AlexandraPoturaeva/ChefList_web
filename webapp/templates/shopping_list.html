@@ -23,6 +23,9 @@
             )
         }}
     </div>
+    <div class="row">
+            <p class="fw-light text-center">Создан: {{ shopping_list.created_at.strftime("%d.%m.%Y %H:%M ") }}</p>
+    </div>
     <div class="p-2"></div>
     <div class="row align-items-center justify-content-md-center">
         <form class="add-item-form" action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
