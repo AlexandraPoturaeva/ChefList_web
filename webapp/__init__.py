@@ -6,6 +6,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from sqlalchemy import func
 from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
@@ -349,7 +350,7 @@ def create_app(database_uri=database_uri):
             new_shopping_list_name = form.name.data
 
             shopping_list_already_exists = ShoppingList.query.filter(
-                ShoppingList.name == new_shopping_list_name,
+                func.lower(ShoppingList.name) == func.lower(new_shopping_list_name),
                 ShoppingList.user_id == current_user.id,
             ).one_or_none()
 
