@@ -337,6 +337,17 @@ def create_app(database_uri=database_uri):
         to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
 
         form = ChooseListForm()
+        shopping_lists_count = ShoppingList.query.filter(
+            ShoppingList.user_id == current_user.id
+        ).count()
+        if shopping_lists_count == 0:
+            new_shopping_list = ShoppingList(
+                name="Мой список покупок",
+                user_id=current_user.id,
+                public_id=str(uuid4()),
+            )
+            db.session.add(new_shopping_list)
+            db.session.commit()
         shopping_lists = ShoppingList.query.filter(
             ShoppingList.user_id == current_user.id
         ).all()
@@ -568,6 +579,7 @@ def create_app(database_uri=database_uri):
     @app.route("/add_recipe_to_shopping_list/<int:recipe_id>", methods=["POST"])
     def add_recipe_to_shopping_list(recipe_id):
         form = ChooseListForm()
+
         shopping_lists = ShoppingList.query.filter(
             ShoppingList.user_id == current_user.id
         ).all()
