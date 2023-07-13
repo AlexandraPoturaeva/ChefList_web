@@ -452,6 +452,7 @@ def create_app(database_uri=database_uri):
                 new_item = ShoppingItem(
                     name=form.name.data,
                     quantity=form.quantity.data,
+                    unit=form.unit.data,
                     shopping_list_id=shopping_list_id,
                 )
                 db.session.add(new_item)
