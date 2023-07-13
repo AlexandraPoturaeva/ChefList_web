@@ -67,12 +67,12 @@ def update_item_to_shopping_list(shopping_list, name, quantity, unit):
         db.session.commit()
 
 
-def update_recipe_to_shopping_list(shopping_list, recipe):
+def update_recipe_to_shopping_list(shopping_list, recipe, portions):
     for ingredient in recipe.ingredients:
         update_item_to_shopping_list(
             shopping_list=shopping_list,
             name=ingredient.product.name,
-            quantity=ingredient.quantity,
+            quantity=ingredient.quantity * portions,
             unit=ingredient.unit,
         )
 
@@ -579,22 +579,24 @@ def create_app(database_uri=database_uri):
                 ShoppingList.user_id == current_user.id,
             ).one()
             recipe = Recipe.query.get(recipe_id)
+            portions = form.portions.data
             update_recipe_to_shopping_list(
-                shopping_list=chosen_shopping_list, recipe=recipe
+                shopping_list=chosen_shopping_list, recipe=recipe, portions=portions
             )
             flash(
                 f"Ингредиенты рецепта добавлены в список {chosen_shopping_list.name}",
                 category="success",
             )
-            return redirect(
-                url_for(
-                    "recipe",
-                    recipe_id=recipe.id,
-                )
-            )
 
         else:
             flash_errors_from_form(form)
+
+        return redirect(
+            url_for(
+                "recipe",
+                recipe_id=recipe.id,
+            )
+        )
 
     return app
 

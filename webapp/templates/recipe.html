@@ -30,6 +30,10 @@
               <div class="form-floating mb-3">
                 {{ form.name(placeholder="Название списка") }} {{
                 form.name.label(class="form-label") }}
+                <div class="form-floating mb-3">
+                  {{ form.portions(placeholder="Количество порций") }} {{
+                  form.portions.label(class="form-label") }}
+                </div>
               </div>
               {{ form.submit }}
             </form>
