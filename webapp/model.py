@@ -54,6 +54,10 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     shopping_lists = db.relationship("ShoppingList", backref="user", lazy=True)
 
+    def __init__(self, email, name):
+        self.email = email
+        self.name = name
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
