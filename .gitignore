@@ -161,4 +161,3 @@ cython_debug/
 *.db
 config.py
 run.bat
-populate_db.py
