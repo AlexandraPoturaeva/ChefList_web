@@ -64,6 +64,8 @@ def create_app(database_uri=database_uri):
 
     @app.route("/registration")
     def registration():
+        if current_user.is_authenticated:
+            return redirect(url_for("index"))
         form = RegistrationForm()
         title = "Регистрация"
         return render_template("registration.html", form=form, page_title=title)
@@ -199,7 +201,7 @@ def create_app(database_uri=database_uri):
             )
         else:
             flash_errors_from_form(form)
-        return redirect(url_for("recipe", recipe_id=recipe_id))
+        return redirect(url_for("recipes", recipe_id=recipe_id))
 
     @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
     @login_required
@@ -290,7 +292,7 @@ def create_app(database_uri=database_uri):
             )
         )
 
-    @app.route("/recipe/<int:recipe_id>")
+    @app.route("/recipes/<int:recipe_id>")
     def recipe(recipe_id):
         try:
             recipe = db.session.query(Recipe).get(recipe_id)
