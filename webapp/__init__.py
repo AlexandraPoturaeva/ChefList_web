@@ -354,7 +354,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
         form.name.choices = shopping_lists_names
 
-
         return render_template(
             "recipe.html",
             PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
