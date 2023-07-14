@@ -96,6 +96,8 @@ def create_app(database_uri=database_uri):
 
     @app.route("/registration")
     def registration():
+        if current_user.is_authenticated:
+            return redirect(url_for("index"))
         form = RegistrationForm()
         title = "Регистрация"
         return render_template(
@@ -115,7 +117,7 @@ def create_app(database_uri=database_uri):
             db.session.add(new_user)
             db.session.commit()
             flash("Вы успешно зарегистрировались", category="success")
-            return redirect(url_for("index"))
+            return redirect(url_for("login"))
 
         else:
             flash_errors_from_form(form)
@@ -235,7 +237,7 @@ def create_app(database_uri=database_uri):
             )
         else:
             flash_errors_from_form(form)
-        return redirect(url_for("recipe", recipe_id=recipe_id))
+        return redirect(url_for("recipes", recipe_id=recipe_id))
 
     @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
     @login_required
@@ -301,13 +303,28 @@ def create_app(database_uri=database_uri):
             )
         )
 
-    @app.route("/recipe/<int:recipe_id>")
-    @login_required
+    @app.route("/recipes/<int:recipe_id>")
     def recipe(recipe_id):
         try:
             recipe = db.session.query(Recipe).get(recipe_id)
         except:
             return redirect(url_for("recipes"))
+
+        admin = User.query.filter(User.name == "admin").one_or_none()
+
+        if admin:
+            admin_id = admin.id
+        else:
+            admin_id = None
+
+        if current_user.is_anonymous:
+            if recipe.user_id != admin_id:
+                flash("Рецепт доступен только авторизированным пользователям!")
+                return redirect(url_for("recipes"))
+        else:
+            if recipe.user_id != admin_id and recipe.user_id != current_user.id:
+                flash("У Вас нет прав на доступ к этому рецепту!")
+                return redirect(url_for("recipes"))
         form = ChooseListForm()
         shopping_lists_count = ShoppingList.query.filter(
             ShoppingList.user_id == current_user.id
@@ -326,6 +343,7 @@ def create_app(database_uri=database_uri):
         shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
         form.name.choices = shopping_lists_names
 
+
         return render_template(
             "recipe.html",
             PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
@@ -337,7 +355,15 @@ def create_app(database_uri=database_uri):
     @app.route("/delete_recipe/<int:recipe_id>")
     @login_required
     def delete_recipe(recipe_id):
-        return redirect(url_for("recipe", recipe_id=recipe_id))
+        try:
+            recipe_to_delete = Recipe.query.get(recipe_id)
+            db.session.delete(recipe_to_delete)
+            db.session.commit()
+            flash("Рецепт удалён.", category="success")
+        except:
+            flash("При удалении рецепта возникла ошибка.", category="danger")
+
+        return redirect(url_for("my_recipes"))
 
     @app.route("/my-lists")
     @login_required
