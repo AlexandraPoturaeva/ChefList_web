@@ -123,6 +123,7 @@ class ShoppingItem(db.Model):
     __tablename__ = "shopping_item"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
+    category = db.Column(db.Text)
     shopping_list_id = db.Column(
         db.Integer, db.ForeignKey("shopping_list.id"), nullable=False
     )
