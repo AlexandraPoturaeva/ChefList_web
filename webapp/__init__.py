@@ -143,6 +143,7 @@ def create_app(database_uri=database_uri):
             return redirect(url_for("index"))
 
     @app.route("/my_recipes")
+    @login_required
     def my_recipes():
         user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
         return render_template("my_recipes.html", user_recipes=user_recipes)
@@ -210,42 +211,18 @@ def create_app(database_uri=database_uri):
         print(Recipe.query.all())
         try:
             recipe = db.session.query(Recipe).get(recipe_id)
-            print(recipe)
         except:
             flash("Неверный идентификатор рецепта")
             return redirect(url_for("my_recipes"))
 
-        to_view = {}
-        to_view["name"] = recipe.name
-        to_view["category"] = recipe.category
-        to_view["description"] = recipe.description
-        to_view["cooking_time"] = recipe.cooking_time
-        to_view["preparation_time"] = recipe.preparation_time
-        to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
-
-        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
-        to_view["ingredients"] = []
-        for ingredient in ingredients:
-            category = Product.query.get(ingredient.product_id).category
-            color = PRODUCT_CATEGORIES[category].lower()
-            to_view["ingredients"].append((str(ingredient), color))
-
         if request.method == "GET":
-            recipe_name = db.session.query(Recipe).get(recipe_id).name
-            ingredients = (
-                db.session.query(Ingredient)
-                .filter(Ingredient.recipe_id == recipe_id)
-                .all()
-            )
-            ingredients_str = [str(ingredient) for ingredient in ingredients]
             form = AddIngredientForm()
             return render_template(
                 "add_ingredient.html",
-                recipe_id=recipe_id,
                 form=form,
-                recipe_name=recipe_name,
-                ingredients=ingredients_str,
-                to_view=to_view,
+                recipe=recipe,
+                PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+                RECIPE_CATEGORIES=RECIPE_CATEGORIES,
             )
 
         form = AddIngredientForm()
@@ -281,7 +258,6 @@ def create_app(database_uri=database_uri):
                 url_for(
                     "add_ingredient",
                     recipe_id=recipe.id,
-                    to_view=to_view,
                 )
             )
         else:
@@ -300,23 +276,12 @@ def create_app(database_uri=database_uri):
             recipe = db.session.query(Recipe).get(recipe_id)
         except:
             return redirect(url_for("recipes"))
-        to_view = {}
-        to_view["name"] = recipe.name
-        to_view["category"] = recipe.category
-        to_view["description"] = recipe.description
-        to_view["cooking_time"] = recipe.cooking_time
-        to_view["preparation_time"] = recipe.preparation_time
-        to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
 
-        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
-        to_view["ingredients"] = []
-        for ingredient in ingredients:
-            category = Product.query.get(ingredient.product_id).category
-            color = PRODUCT_CATEGORIES[category].lower()
-            to_view["ingredients"].append((str(ingredient), color))
         return render_template(
             "recipe.html",
-            to_view=to_view,
+            recipe=recipe,
+            PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+            RECIPE_CATEGORIES=RECIPE_CATEGORIES,
         )
 
     @app.route("/delete_recipe/<int:recipe_id>")
