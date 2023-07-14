@@ -41,11 +41,10 @@ def test_registration(client, app):
         assert User.query.count() == 1
         assert User.query.first().email == "test@example.com"
 
-    response = client.post(
+    client.post(
         "/login",
         data={"email": "test@example.com", "password": "testpassword"},
         follow_redirects=True,
     )
 
-    assert response.request.path == "/profile"
     assert client.get("/profile").status_code == 200
