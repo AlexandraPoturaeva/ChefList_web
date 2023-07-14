@@ -40,6 +40,9 @@
                     {{ add_shopping_item_form.quantity(placeholder="Количество") }}
                 </div>
                 <div class="col-auto">
+                    {{ add_shopping_item_form.unit() }}
+                </div>
+                <div class="col-auto">
                     {{ add_shopping_item_form.submit }}
                 </div>
             </div>
@@ -65,12 +68,7 @@
                             </label>
                         </div>
                         <div class="col-2 text-end">
-                            <span class="align-middle">
-                                {%if item.quantity %}{{ item.quantity }}{% endif %}
-                            </span>
-                        </div>
-                        <div class="col-2 text-end">
-                            <span class="align-middle">{{ item.unit }}</span>
+                            <span class="align-middle">{%if item.quantity %}{{ item.quantity }} {{ item.unit }}{% endif %}</span>
                         </div>
                         <div class="col-2 text-end">
                             {{edit_feature.button(
