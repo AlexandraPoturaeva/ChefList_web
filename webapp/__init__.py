@@ -15,6 +15,7 @@ from webapp.forms import (
     LoginForm,
     RegistrationForm,
     RenameElement,
+    ChooseListForm,
 )
 from webapp.model import (
     db,
@@ -45,6 +46,37 @@ def flash_errors_from_form(form):
             )
 
 
+def update_item_to_shopping_list(shopping_list, name, quantity, unit):
+    exist_item = ShoppingItem.query.filter(
+        ShoppingItem.shopping_list_id == shopping_list.id,
+        ShoppingItem.name == name,
+        ShoppingItem.unit == unit,
+    ).one_or_none()
+
+    if exist_item:
+        exist_item.quantity += quantity
+        db.session.commit()
+    else:
+        new_item = ShoppingItem(
+            name=name,
+            quantity=quantity,
+            shopping_list_id=shopping_list.id,
+            unit=unit,
+        )
+        db.session.add(new_item)
+        db.session.commit()
+
+
+def update_recipe_to_shopping_list(shopping_list, recipe, portions):
+    for ingredient in recipe.ingredients:
+        update_item_to_shopping_list(
+            shopping_list=shopping_list,
+            name=ingredient.product.name,
+            quantity=ingredient.quantity * portions,
+            unit=ingredient.unit,
+        )
+
+
 def create_app(database_uri=database_uri):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
@@ -68,7 +100,11 @@ def create_app(database_uri=database_uri):
             return redirect(url_for("index"))
         form = RegistrationForm()
         title = "Регистрация"
-        return render_template("registration.html", form=form, page_title=title)
+        return render_template(
+            "registration.html",
+            form=form,
+            page_title=title,
+        )
 
     @app.route("/process-reg", methods=["POST"])
     def process_reg():
@@ -209,42 +245,18 @@ def create_app(database_uri=database_uri):
         print(Recipe.query.all())
         try:
             recipe = db.session.query(Recipe).get(recipe_id)
-            print(recipe)
         except:
             flash("Неверный идентификатор рецепта")
             return redirect(url_for("my_recipes"))
 
-        to_view = {}
-        to_view["name"] = recipe.name
-        to_view["category"] = recipe.category
-        to_view["description"] = recipe.description
-        to_view["cooking_time"] = recipe.cooking_time
-        to_view["preparation_time"] = recipe.preparation_time
-        to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
-
-        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
-        to_view["ingredients"] = []
-        for ingredient in ingredients:
-            category = Product.query.get(ingredient.product_id).category
-            color = PRODUCT_CATEGORIES[category].lower()
-            to_view["ingredients"].append((str(ingredient), color))
-
         if request.method == "GET":
-            recipe_name = db.session.query(Recipe).get(recipe_id).name
-            ingredients = (
-                db.session.query(Ingredient)
-                .filter(Ingredient.recipe_id == recipe_id)
-                .all()
-            )
-            ingredients_str = [str(ingredient) for ingredient in ingredients]
             form = AddIngredientForm()
             return render_template(
                 "add_ingredient.html",
-                recipe_id=recipe_id,
                 form=form,
-                recipe_name=recipe_name,
-                ingredients=ingredients_str,
-                to_view=to_view,
+                recipe=recipe,
+                PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+                RECIPE_CATEGORIES=RECIPE_CATEGORIES,
             )
 
         form = AddIngredientForm()
@@ -280,7 +292,6 @@ def create_app(database_uri=database_uri):
                 url_for(
                     "add_ingredient",
                     recipe_id=recipe.id,
-                    to_view=to_view,
                 )
             )
         else:
@@ -298,6 +309,7 @@ def create_app(database_uri=database_uri):
             recipe = db.session.query(Recipe).get(recipe_id)
         except:
             return redirect(url_for("recipes"))
+
         admin = User.query.filter(User.name == "admin").one_or_none()
 
         if admin:
@@ -313,24 +325,31 @@ def create_app(database_uri=database_uri):
             if recipe.user_id != admin_id and recipe.user_id != current_user.id:
                 flash("У Вас нет прав на доступ к этому рецепту!")
                 return redirect(url_for("recipes"))
+        form = ChooseListForm()
+        shopping_lists_count = ShoppingList.query.filter(
+            ShoppingList.user_id == current_user.id
+        ).count()
+        if shopping_lists_count == 0:
+            new_shopping_list = ShoppingList(
+                name="Мой список покупок",
+                user_id=current_user.id,
+                public_id=str(uuid4()),
+            )
+            db.session.add(new_shopping_list)
+            db.session.commit()
+        shopping_lists = ShoppingList.query.filter(
+            ShoppingList.user_id == current_user.id
+        ).all()
+        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
+        form.name.choices = shopping_lists_names
 
-        to_view = {}
-        to_view["name"] = recipe.name
-        to_view["category"] = recipe.category
-        to_view["description"] = recipe.description
-        to_view["cooking_time"] = recipe.cooking_time
-        to_view["preparation_time"] = recipe.preparation_time
-        to_view["recipe_color"] = RECIPE_CATEGORIES[recipe.category].lower()
 
-        ingredients = Ingredient.query.filter(Ingredient.recipe_id == recipe_id).all()
-        to_view["ingredients"] = []
-        for ingredient in ingredients:
-            category = Product.query.get(ingredient.product_id).category
-            color = PRODUCT_CATEGORIES[category].lower()
-            to_view["ingredients"].append((str(ingredient), color))
         return render_template(
             "recipe.html",
-            to_view=to_view,
+            PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+            RECIPE_CATEGORIES=RECIPE_CATEGORIES,
+            recipe=recipe,
+            form=form,
         )
 
     @app.route("/delete_recipe/<int:recipe_id>")
@@ -474,14 +493,12 @@ def create_app(database_uri=database_uri):
             ).one_or_none()
 
             if shopping_list:
-                shopping_list_id = shopping_list.id
-                new_item = ShoppingItem(
+                update_item_to_shopping_list(
+                    shopping_list=shopping_list,
                     name=form.name.data,
                     quantity=form.quantity.data,
-                    shopping_list_id=shopping_list_id,
+                    unit=form.unit.data,
                 )
-                db.session.add(new_item)
-                db.session.commit()
                 flash("Новый продукт успешно добавлен", category="success")
 
             else:
@@ -551,6 +568,40 @@ def create_app(database_uri=database_uri):
             url_for("show_my_shopping_lists"),
         )
         return redirect(redirect_url)
+
+    @app.route("/add_recipe_to_shopping_list/<int:recipe_id>", methods=["POST"])
+    def add_recipe_to_shopping_list(recipe_id):
+        form = ChooseListForm()
+
+        shopping_lists = ShoppingList.query.filter(
+            ShoppingList.user_id == current_user.id
+        ).all()
+        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
+        form.name.choices = shopping_lists_names
+        if form.validate_on_submit():
+            chosen_shopping_list = ShoppingList.query.filter(
+                ShoppingList.name == form.name.data,
+                ShoppingList.user_id == current_user.id,
+            ).one()
+            recipe = Recipe.query.get(recipe_id)
+            portions = form.portions.data
+            update_recipe_to_shopping_list(
+                shopping_list=chosen_shopping_list, recipe=recipe, portions=portions
+            )
+            flash(
+                f"Ингредиенты рецепта добавлены в список {chosen_shopping_list.name}",
+                category="success",
+            )
+
+        else:
+            flash_errors_from_form(form)
+
+        return redirect(
+            url_for(
+                "recipe",
+                recipe_id=recipe.id,
+            )
+        )
 
     return app
 
