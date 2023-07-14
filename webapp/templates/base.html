@@ -261,12 +261,12 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav me-auto mb-2 mb-md-0">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#"
-                >Рецепты</a
-              >
+              <a class="nav-link" href="{{ url_for('recipes') }}">Рецепты</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Мои рецепты</a>
+              <a class="nav-link" href="{{ url_for('my_recipes') }}"
+                >Мои рецепты</a
+              >
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('show_my_shopping_lists') }}"

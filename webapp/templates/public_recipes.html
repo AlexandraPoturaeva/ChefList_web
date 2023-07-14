@@ -1,0 +1,56 @@
+{% extends "base.html" %} {% block content %}
+<div class="col-lg-8 mx-auto p-4 py-md-5">
+  <h1 class="text-center">Рецепты</h1>
+  <div class="p-3"></div>
+  <table id="public_recipes" class="table table-striped fs-4">
+    <thead>
+      <tr>
+        <th scope="col">Название</th>
+        <th scope="col"></th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {%for recipe in public_recipes%}
+      <tr>
+        <td class="align-middle">
+          <a
+            href="{{ url_for('recipe', recipe_id = recipe.id) }}"
+            class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover"
+            >{{ recipe.name }}</a
+          >
+        </td>
+        <td>
+          <a
+            class="btn"
+            role="button"
+            onclick="copy('/{{recipe.id}}','#copy_button_{{recipe.id}}')"
+            id="copy_button_{{recipe.id}}"
+            data-toggle="tooltip"
+            data-placement="right"
+            title="Копировать ссылку"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-link"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"
+              />
+              <path
+                d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"
+              />
+            </svg>
+          </a>
+        </td>
+      </tr>
+      {%endfor%}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

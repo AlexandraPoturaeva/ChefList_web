@@ -1,8 +1,28 @@
-Рецепт: {{ to_view["name"] }}<br />
-Категория рецепта: {{ to_view["category"] }}<br />
-Описание: {{ to_view["description"] }}<br />
-Время на подготовку: {{ to_view["preparation_time"]}}<br />
-Время на приготовление: {{ to_view["cooking_time"]}}<br />
-Для приготовления Вам потребуется:<br />
-{% for ingredient in to_view["ingredients"] %} {{ ingredient }}<br />
-{% endfor %}
+<div class="col-lg-8 mx-auto p-4 py-md-5">
+  <h1
+    style="background-color: {{ to_view['recipe_color'] }}"
+    class="text-center"
+  >
+    {{ to_view["name"] }}
+  </h1>
+  <p class="fs-3 col-6 mx-auto text-center">{{ to_view["category"] }}</p>
+  <p class="fw-bold fs-4">Описание:</p>
+  <p class="fs-5 col-6 mx-auto">{{ to_view["description"] }}</p>
+  <p class="fw-bold fs-4">Время на подготовку:</p>
+  <p class="fs-5 col-6 mx-auto">{{ to_view["preparation_time"]}} мин.</p>
+  <p class="fw-bold fs-4">Время на приготовление:</p>
+  <p class="fs-5 col-6 mx-auto">{{ to_view["cooking_time"] }} мин.</p>
+  <p class="fw-bold fs-4">Для приготовления Вам потребуется:</p>
+  <div class="col-6 mx-auto">
+    <ul class="list-group">
+      {% for ingredient, color in to_view["ingredients"] %}
+      <li
+        class="list-group-item list-group-item-action fs-4"
+        style="background-color: {{ color }}"
+      >
+        {{ ingredient }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% include 'static_recipe.html' %} {% block content %}
+{% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
 
 <form
   action=" {{ url_for('add_ingredient', recipe_id=recipe_id) }}"
@@ -26,9 +26,10 @@
   {{ form.add }}
   <div class="p-2"></div>
 </form>
-<p class="fs-6">
-  <a href="{{ url_for('recipe', recipe_id=recipe_id) }}" class="link-primary"
-    >Завершить добавление ингредиентов</a
-  >
-  {% endblock %}
-</p>
+<a
+  class="btn btn-success w-100 py-2"
+  href="{{ url_for('recipe', recipe_id=recipe_id) }}"
+>
+  Завершить добавление ингредиентов</a
+>
+{% endblock %}

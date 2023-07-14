@@ -15,7 +15,7 @@ options: search, sort, navigate through it's pages, choose how many entries to s
     $('#my_shopping_lists').DataTable(
         {
             "columnDefs": [
-                { "orderable": false, "targets": [2, 3, 4] } // set feature of sorting only for 2, 3, 4 columns
+                { "orderable": false, "targets": [1, 3, 4] } // set feature of sorting only for 2, 3, 4 columns
                 ],
             "order": [],
             "language": { // translate DataTable labels to Russian language
@@ -38,13 +38,24 @@ options: search, sort, navigate through it's pages, choose how many entries to s
 
 /*
 The code below is an event handler to the "click" event
-on the element (button) with id "rename_button".
+on the element (button) with id "rename_shopping_list_button".
 Function creates variable and assigns to it a value of element_id got from the button.
-After this function passes this data (element_id) to a form in the modal fade with id "rename_modal".
+After this function passes this data (element_id) to a form in the modal fade with id "rename_shopping_list_modal".
 */
-    $(document).on("click", "#rename_button", function () {
+    $(document).on("click", "#rename_shopping_list_button", function () {
          var element_id = $(this).data('id');
-         $("#rename_modal #element_id").val( element_id );
+         $("#rename_shopping_list_modal #element_id").val( element_id );
+    });
+
+/*
+The code below is an event handler to the "click" event
+on the element (button) with id "edit_quantity".
+Function creates variable and assigns to it a value of element_id got from the button.
+After this function passes this data (element_id) to a form in the modal fade with id "edit_quantity_modal".
+*/
+    $(document).on("click", "#edit_quantity", function () {
+         var element_id = $(this).data('id');
+         $("#edit_quantity_modal #element_id").val( element_id );
     });
 
 /*
@@ -91,6 +102,42 @@ on a input (checkbox) with class ended with "check-item".
                 console.log(data);
             }
         );
+    });
+
+/*
+The code below is an event handler to the "submit" event
+in the form containing "add-item-form" in it's class.
+Function compares text got from the field with id "new_item_name"
+with each label with class containing "item-name".
+
+If these texts are equal to each other, function:
+ 1. adds 'list-group-item-danger' to the class of 'li.shopping-list-item'
+ 2. puts a message "Такой продукт уже есть в списке" into a "div.space-for-messages"
+ 3. prevents submitting of the form
+ 4. stops iteration
+*/
+
+    $(".add-item-form").submit(function(e) {
+        var new_item_name = $("#new_item_name").val();
+
+        $('label.item-name').each(function() {
+            var item_name = $(this).text().trim();
+
+            if (item_name == new_item_name) {
+
+                let li = $(this).parents('li.shopping-list-item')
+                li.addClass('list-group-item-danger');
+                $('.space-for-messages').text('Такой продукт уже есть в списке').css("color", "red")
+
+                setTimeout(function() {
+                    li.removeClass('list-group-item-danger');
+                    $('.space-for-messages').empty();
+                    }, 3000);
+
+                e.preventDefault();
+                return false;
+            }
+        });
     });
 });
 
