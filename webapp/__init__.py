@@ -318,6 +318,7 @@ def create_app(database_uri=database_uri):
             admin_id = None
 
         if current_user.is_anonymous:
+            form = None
             if recipe.user_id != admin_id:
                 flash("Рецепт доступен только авторизированным пользователям!")
                 return redirect(url_for("recipes"))
@@ -325,24 +326,25 @@ def create_app(database_uri=database_uri):
             if recipe.user_id != admin_id and recipe.user_id != current_user.id:
                 flash("У Вас нет прав на доступ к этому рецепту!")
                 return redirect(url_for("recipes"))
-        form = ChooseListForm()
-        shopping_lists_count = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).count()
-        if shopping_lists_count == 0:
-            new_shopping_list = ShoppingList(
-                name="Мой список покупок",
-                user_id=current_user.id,
-                public_id=str(uuid4()),
-            )
-            db.session.add(new_shopping_list)
-            db.session.commit()
-        shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).all()
-        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
-        form.name.choices = shopping_lists_names
-
+            form = ChooseListForm()
+            shopping_lists_count = ShoppingList.query.filter(
+                ShoppingList.user_id == current_user.id
+            ).count()
+            if shopping_lists_count == 0:
+                new_shopping_list = ShoppingList(
+                    name="Мой список покупок",
+                    user_id=current_user.id,
+                    public_id=str(uuid4()),
+                )
+                db.session.add(new_shopping_list)
+                db.session.commit()
+            shopping_lists = ShoppingList.query.filter(
+                ShoppingList.user_id == current_user.id
+            ).all()
+            shopping_lists_names = [
+                shopping_list.name for shopping_list in shopping_lists
+            ]
+            form.name.choices = shopping_lists_names
 
         return render_template(
             "recipe.html",
