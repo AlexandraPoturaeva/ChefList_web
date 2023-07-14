@@ -161,3 +161,6 @@ cython_debug/
 *.db
 config.py
 run.bat
+run_development.bat
+run_production_migration.bat
+set_development.bat

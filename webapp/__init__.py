@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import (
     LoginManager,
@@ -6,6 +11,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from flask_migrate import Migrate
 from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
@@ -30,11 +36,9 @@ from webapp.model import (
     PRODUCT_CATEGORIES,
 )
 from uuid import uuid4
-import os
 
-
-basedir = os.path.abspath(os.path.dirname(__file__))
-database_uri = "sqlite:///" + os.path.join(basedir, "..", "webapp.db")
+database_uri = os.environ.get("DATABASE_URL")
+secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 
 def flash_errors_from_form(form):
@@ -77,11 +81,18 @@ def update_recipe_to_shopping_list(shopping_list, recipe, portions):
         )
 
 
-def create_app(database_uri=database_uri):
+def create_app(database_uri=database_uri, secret_key=secret_key):
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-    app.config.from_pyfile("config.py")
+
+    if database_uri and secret_key:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+        app.config["SECRET_KEY"] = secret_key
+    else:
+        app.config.from_pyfile("config.py")
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
     db.init_app(app)
+    migrate = Migrate(app, db)
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "login"
@@ -357,7 +368,6 @@ def create_app(database_uri=database_uri):
         ).all()
         shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
         form.name.choices = shopping_lists_names
-
 
         return render_template(
             "recipe.html",
