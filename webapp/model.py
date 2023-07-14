@@ -3,31 +3,31 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-db = SQLAlchemy()
+db = SQLAlchemy(engine_options={"pool_pre_ping": True})
 
 PRODUCT_CATEGORIES = {
-    "Хлебобулочные изделия": "BurlyWood",
-    "Кондитерские товары": "Goldenrod",
-    "Молочная продукция": "Seashell",
-    "Мясные товары": "Brown",
-    "Колбасная продукция": "Salmon",
-    "Рыба и морепродукты": "SteelBlue",
-    "Овощи-фрукты": "LimeGreen",
-    "Бакалея": "HotPink",
-    "Напитки": "Magenta",
+    "Хлебобулочные изделия": "burlywood",
+    "Кондитерские товары": "goldenrod",
+    "Молочная продукция": "seashell",
+    "Мясные товары": "brown",
+    "Колбасная продукция": "salmon",
+    "Рыба и морепродукты": "steelblue",
+    "Овощи-фрукты": "limegreen",
+    "Бакалея": "hotpink",
+    "Напитки": "magenta",
 }
 
 RECIPE_CATEGORIES = {
-    "Первые блюда": "FireBrick",
-    "Вторые блюда": "DarkGoldenRod",
-    "Закуски": "LightSkyBlue",
-    "Салаты": "SpringGreen",
-    "Соусы, кремы": "PeachPuff",
-    "Напитки": "OrangeRed",
-    "Десерты": "DarkOrange",
-    "Выпечка": "LemonChiffon",
-    "Торты": "MistyRose",
-    "Блины и оладьи": "BurlyWood",
+    "Первые блюда": "firebrick",
+    "Вторые блюда": "darkgoldenrod",
+    "Закуски": "lightskyblue",
+    "Салаты": "springgreen",
+    "Соусы, кремы": "peachpuff",
+    "Напитки": "orangered",
+    "Десерты": "darkorange",
+    "Выпечка": "lemonchiffon",
+    "Торты": "mistyrose",
+    "Блины и оладьи": "burlywood",
 }
 
 UNITS = [
@@ -87,6 +87,9 @@ class Recipe(db.Model):
     preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    ingredients = db.relationship(
+        "Ingredient", backref="recipe", lazy=True, cascade="all, delete"
+    )
 
     def __repr__(self):
         return f"<Recipe: {self.name} by user with id {self.user_id}>"
@@ -98,6 +101,7 @@ class Ingredient(db.Model):
     quantity = db.Column(db.Float, nullable=False)
     unit = db.Column(db.Text)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
+    product = db.relationship("Product")
 
     def __str__(self):
         product_name = db.session.query(Product).get(self.product_id).name
@@ -123,6 +127,7 @@ class ShoppingItem(db.Model):
     __tablename__ = "shopping_item"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
+    category = db.Column(db.Text)
     shopping_list_id = db.Column(
         db.Integer, db.ForeignKey("shopping_list.id"), nullable=False
     )

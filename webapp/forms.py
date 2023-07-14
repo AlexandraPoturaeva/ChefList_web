@@ -186,3 +186,19 @@ class EditQuantityOfShoppingItemForm(FlaskForm):
     )
 
     submit = SubmitField("Изменить", render_kw={"class": "btn btn-primary"})
+
+
+class ChooseListForm(FlaskForm):
+    name = SelectField(
+        "Добавить продукты из рецепта в список покупок",
+        validators=[DataRequired()],
+        coerce=str,
+        render_kw={"class": "form-control"},
+    )
+    portions = IntegerField(
+        "Количество порций",
+        validators=[DataRequired(), NumberRange(min=1)],
+        default=1,
+        render_kw={"class": "form-control"},
+    )
+    submit = SubmitField("Добавить", render_kw={"class": "btn btn-primary"})
