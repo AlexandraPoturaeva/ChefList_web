@@ -66,7 +66,11 @@ def create_app(database_uri=database_uri):
     def registration():
         form = RegistrationForm()
         title = "Регистрация"
-        return render_template("registration.html", form=form, page_title=title)
+        return render_template(
+            "registration.html",
+            form=form,
+            page_title=title,
+        )
 
     @app.route("/process-reg", methods=["POST"])
     def process_reg():
