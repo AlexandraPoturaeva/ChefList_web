@@ -276,6 +276,7 @@
           </ul>
 
           <form class="d-flex" role="search">
+            {% if current_user.is_anonymous %}
             <a
               class="btn btn-outline-success"
               href="{{ url_for('registration') }}"
@@ -288,6 +289,14 @@
               role="button"
               >Войти</a
             >
+            {% else %}
+            <a
+              class="btn btn-outline-success"
+              href="{{ url_for('logout') }}"
+              role="button"
+              >Выйти</a
+            >
+            {% endif %}
           </form>
         </div>
       </div>

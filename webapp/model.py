@@ -6,28 +6,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy()
 
 PRODUCT_CATEGORIES = {
-    "Хлебобулочные изделия": "BurlyWood",
-    "Кондитерские товары": "Goldenrod",
-    "Молочная продукция": "Seashell",
-    "Мясные товары": "Brown",
-    "Колбасная продукция": "Salmon",
-    "Рыба и морепродукты": "SteelBlue",
-    "Овощи-фрукты": "LimeGreen",
-    "Бакалея": "HotPink",
-    "Напитки": "Magenta",
+    "Хлебобулочные изделия": "burlywood",
+    "Кондитерские товары": "goldenrod",
+    "Молочная продукция": "seashell",
+    "Мясные товары": "brown",
+    "Колбасная продукция": "salmon",
+    "Рыба и морепродукты": "steelblue",
+    "Овощи-фрукты": "limegreen",
+    "Бакалея": "hotpink",
+    "Напитки": "magenta",
 }
 
 RECIPE_CATEGORIES = {
-    "Первые блюда": "FireBrick",
-    "Вторые блюда": "DarkGoldenRod",
-    "Закуски": "LightSkyBlue",
-    "Салаты": "SpringGreen",
-    "Соусы, кремы": "PeachPuff",
-    "Напитки": "OrangeRed",
-    "Десерты": "DarkOrange",
-    "Выпечка": "LemonChiffon",
-    "Торты": "MistyRose",
-    "Блины и оладьи": "BurlyWood",
+    "Первые блюда": "firebrick",
+    "Вторые блюда": "darkgoldenrod",
+    "Закуски": "lightskyblue",
+    "Салаты": "springgreen",
+    "Соусы, кремы": "peachpuff",
+    "Напитки": "orangered",
+    "Десерты": "darkorange",
+    "Выпечка": "lemonchiffon",
+    "Торты": "mistyrose",
+    "Блины и оладьи": "burlywood",
 }
 
 UNITS = [
