@@ -123,7 +123,7 @@ If these texts are equal to each other, function:
         $('label.item-name').each(function() {
             var item_name = $(this).text().trim();
 
-            if (item_name == new_item_name) {
+            if (item_name.toLowerCase() == new_item_name.toLowerCase()) {
 
                 let li = $(this).parents('li.shopping-list-item')
                 li.addClass('list-group-item-danger');
@@ -139,7 +139,6 @@ If these texts are equal to each other, function:
             }
         });
     });
-
 });
 
 
