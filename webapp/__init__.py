@@ -518,8 +518,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             ).one_or_none()
 
             if shopping_list:
-                if not form.name.data:
-                    form.name.data = 0
                 update_item_to_shopping_list(
                     shopping_list=shopping_list,
                     name=form.name.data,
