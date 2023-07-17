@@ -12,6 +12,7 @@ from flask_login import (
     logout_user,
 )
 from flask_migrate import Migrate
+from sqlalchemy import func
 from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
@@ -409,6 +410,18 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             page_title=title,
         )
 
+    def shopping_list_does_not_exist(name):
+        shopping_list_already_exists = ShoppingList.query.filter(
+            func.lower(ShoppingList.name) == func.lower(name),
+            ShoppingList.user_id == current_user.id,
+        ).one_or_none()
+
+        if shopping_list_already_exists:
+            flash("Список покупок с таким именем уже существует", category="danger")
+            return False
+
+        return True
+
     @app.route("/create-new-list", methods=["POST"])
     def create_new_shopping_list():
         form = CreateListForm()
@@ -416,17 +429,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         user = current_user
 
         if form.validate_on_submit():
-            new_shopping_list_name = form.name.data
+            new_shopping_list_name = form.name.data.lower()
 
-            shopping_list_already_exists = ShoppingList.query.filter(
-                ShoppingList.name == new_shopping_list_name,
-                ShoppingList.user_id == current_user.id,
-            ).one_or_none()
-
-            if shopping_list_already_exists:
-                flash("Список покупок с таким именем уже существует", category="danger")
-
-            else:
+            if shopping_list_does_not_exist(new_shopping_list_name):
                 new_shopping_list = ShoppingList(
                     name=new_shopping_list_name, user_id=user.id, public_id=public_id
                 )
@@ -460,18 +465,22 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         form = RenameElement()
 
         if form.validate_on_submit():
-            new_name = form.new_value.data
-            shopping_list_id = form.element_id.data
-            shopping_list_to_rename = ShoppingList.query.filter(
-                ShoppingList.id == shopping_list_id
-            ).one_or_none()
+            new_name = form.new_value.data.lower()
 
-            if shopping_list_to_rename:
-                shopping_list_to_rename.name = new_name
-                db.session.commit()
-                flash("Список переименован", category="success")
-            else:
-                flash("При переименовании списка возникла ошибка", category="danger")
+            if shopping_list_does_not_exist(new_name):
+                shopping_list_id = form.element_id.data
+                shopping_list_to_rename = ShoppingList.query.filter(
+                    ShoppingList.id == shopping_list_id
+                ).one_or_none()
+
+                if shopping_list_to_rename:
+                    shopping_list_to_rename.name = new_name
+                    db.session.commit()
+                    flash("Список переименован", category="success")
+                else:
+                    flash(
+                        "При переименовании списка возникла ошибка", category="danger"
+                    )
 
         else:
             flash_errors_from_form(form)
