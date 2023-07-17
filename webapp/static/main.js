@@ -116,7 +116,7 @@ If these texts are equal to each other, function:
  3. prevents submitting of the form
  4. stops iteration
 */
-
+/*
     $(".add-item-form").submit(function(e) {
         var new_item_name = $("#new_item_name").val();
 
@@ -139,6 +139,7 @@ If these texts are equal to each other, function:
             }
         });
     });
+    */
 });
 
 
