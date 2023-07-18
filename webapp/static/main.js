@@ -139,6 +139,26 @@ If these texts are equal to each other, function:
             }
         });
     });
+
+    $(document).on("click", ".add-ingredients-from-recipe", function () {
+         var recipe_id = $(this).data('id')[0];
+         var shopping_list_id = $(this).data('id')[1];
+         var portions = $("#select_portions_" + recipe_id).val();
+
+         $.post(
+            "/choose_recipe_to_add/" + shopping_list_id,
+            {recipe_id: recipe_id, portions: portions})
+            .done(function(){
+                $('.space-for-messages').text('ОК').css("color", "green");
+            })
+            .fail(function(){
+                $('.space-for-messages').text('FAIL').css("color", "red");
+            });
+
+            setTimeout(function() {
+                    $('.space-for-messages').empty();
+                    }, 4000);
+    });
 });
 
 

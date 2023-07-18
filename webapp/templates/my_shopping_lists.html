@@ -25,14 +25,16 @@
             <tr>
                 <td class="align-middle">
                     <a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}"
-                       class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">{{
-                        list.name }}</a></td>
+                       class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">
+                       {{ list.name }}
+                    </a>
+                </td>
                 <td>
                     {{ edit_shopping_list_name.button(
-                        button_id='rename_shopping_list_button',
-                        modal_id='rename_shopping_list_modal',
-                        element_id=list.id
-                        )
+                    button_id='rename_shopping_list_button',
+                    modal_id='rename_shopping_list_modal',
+                    element_id=list.id
+                    )
                     }}
                 </td>
                 <td class="align-middle">{{ list.created_at.strftime("%d.%m.%Y") }}</td>
@@ -94,9 +96,9 @@
     </div>
 </div>
 {{ edit_shopping_list_name.modal_form(
-    modal_id='rename_shopping_list_modal',
-    edit_form=rename_shopping_list_form,
-    edit_form_url=url_for("rename_shopping_list")
-    )
+modal_id='rename_shopping_list_modal',
+edit_form=rename_shopping_list_form,
+edit_form_url=url_for("rename_shopping_list")
+)
 }}
 {% endblock %}

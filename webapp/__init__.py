@@ -17,12 +17,12 @@ from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
     AddShoppingItem,
+    ChooseListForm,
     CreateListForm,
     EditQuantityOfShoppingItemForm,
     LoginForm,
     RegistrationForm,
     RenameElement,
-    ChooseListForm,
 )
 from webapp.model import (
     db,
@@ -635,6 +635,29 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 "recipe",
                 recipe_id=recipe.id,
             )
+        )
+
+    @app.route("/choose_recipe_to_add/<int:shopping_list_id>", methods=["GET", "POST"])
+    def choose_recipe_to_add(shopping_list_id):
+        user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
+
+        recipe_id = request.form.get("recipe_id")
+        portions = request.form.get("portions")
+
+        if recipe_id and portions:
+            portions = int(portions)
+            chosen_shopping_list = ShoppingList.query.filter(
+                ShoppingList.id == shopping_list_id
+            ).one()
+            recipe = Recipe.query.get(recipe_id)
+            update_recipe_to_shopping_list(
+                shopping_list=chosen_shopping_list, recipe=recipe, portions=portions
+            )
+
+        return render_template(
+            "choose_recipe_to_add.html",
+            user_recipes=user_recipes,
+            shopping_list_id=shopping_list_id,
         )
 
     return app

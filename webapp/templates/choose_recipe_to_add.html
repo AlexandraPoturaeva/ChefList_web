@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-3 text-center space-for-messages"></div>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for recipe in user_recipes %}
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ recipe.name }}</h5>
+                <p class="card-text">
+                    {% for ingredient in recipe.ingredients %}
+                    {{ ingredient }}<br>
+                    {%endfor%}
+                </p>
+                <div class="row justify-content-md-center">
+                    <div class="col-5">
+                        <div class="form-outline">
+                            <input id="select_portions_{{ recipe.id }}" min="1" type="number" value="1" class="form-control"/>
+                            <label for="select_portions_{{ recipe.id }}">Количество порций</label>
+                        </div>
+                    </div>
+                    <div class="col-7 text-start">
+                        <a class="btn btn-success add-ingredients-from-recipe"
+                           id = {{recipe.id}}
+                           data-id="[{{ recipe.id }}, {{ shopping_list_id }}]"
+                           role="button"
+                           data-placement="right"
+                           title="Добавить">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-plus-square-fill" viewBox="0 0 16 16">
+                                <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 1 0z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {%endfor%}
+</div>
+{% endblock %}
