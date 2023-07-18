@@ -9,19 +9,14 @@
 
         <h1 class="h3 mb-3 fw-normal">Вход на сайт</h1>
 
-        <div class="form-floating">
+        <div class="form-floating mb-3">
           {{ form.email(placeholder="name@example.ru") }} {{
           form.email.label(class="form-label") }}
         </div>
 
-        <div class="form-floating">
+        <div class="form-floating mb-3">
           {{ form.password(placeholder="Пароль") }} {{
           form.password.label(class="form-label") }}
-        </div>
-
-        <div class="form-check text-start my-3">
-          {{ form.remember_me() }} {{
-          form.remember_me.label(class="form-check-label") }}
         </div>
 
         {{ form.submit }}
@@ -32,7 +27,7 @@
             >Зарегистрироваться</a
           >
         </p>
-        <p class="mt-5 mb-3 text-body-secondary">&copy; 2023</p>
+        <p class="text-body-secondary">&copy; 2023</p>
       </form>
     </div>
   </div>
