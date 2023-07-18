@@ -158,12 +158,14 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         form = LoginForm()
         email = form.email.data
         password = form.password.data
+        remember = form.remember_me.data
+        print(remember)
 
         if form.validate_on_submit():
             user = User.query.filter(User.email == email).one_or_none()
             if user:
                 if user.check_password(password):
-                    login_user(user)
+                    login_user(user, remember=remember)
                     flash("Вы успешно вошли на сайт", category="success")
                     return redirect(url_for("index"))
                 else:
