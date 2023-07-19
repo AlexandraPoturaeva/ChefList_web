@@ -138,16 +138,22 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         form = RegistrationForm()
         if form.validate_on_submit():
             user_name = form.name.data
-            user_email = form.email.data.lower()
-            new_user = User(name=user_name, email=user_email)
-            new_user.set_password(form.password.data)
-            db.session.add(new_user)
-            db.session.commit()
-            flash("Вы успешно зарегистрировались", category="success")
-            return redirect(url_for("login"))
 
-        else:
-            flash_errors_from_form(form)
+            if user_name.lower() == "admin":
+                flash(
+                    "Регистрация под таким именем невозможна",
+                    category="danger",
+                )
+            else:
+                user_email = form.email.data.lower()
+                new_user = User(name=user_name, email=user_email)
+                new_user.set_password(form.password.data)
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Вы успешно зарегистрировались", category="success")
+                return redirect(url_for("login"))
+
+        flash_errors_from_form(form)
         return redirect(url_for("registration"))
 
     @app.route("/login", methods=["GET", "POST"])
