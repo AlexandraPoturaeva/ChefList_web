@@ -7,14 +7,17 @@ db = SQLAlchemy(engine_options={"pool_pre_ping": True})
 
 PRODUCT_CATEGORIES = {
     "Хлебобулочные изделия": "burlywood",
-    "Кондитерские товары": "goldenrod",
-    "Молочная продукция": "seashell",
-    "Мясные товары": "brown",
-    "Колбасная продукция": "salmon",
+    "Кондитерские изделия": "goldenrod",
+    "Молоко, сыр, яйца": "seashell",
+    "Мясо, птица": "brown",
+    "Сосиски, колбасы, деликатесы": "salmon",
     "Рыба и морепродукты": "steelblue",
-    "Овощи-фрукты": "limegreen",
-    "Бакалея": "hotpink",
+    "Овощи и фрукты": "limegreen",
+    "Бакалея, соусы": "hotpink",
     "Напитки": "magenta",
+    "Чай, кофе, какао": "rosybrown",
+    "Чипсы, орехи, сухарики": "tomato",
+    "Замороженные продукты": "lightskyblue",
 }
 
 RECIPE_CATEGORIES = {
