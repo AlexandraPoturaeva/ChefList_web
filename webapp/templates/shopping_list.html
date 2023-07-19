@@ -2,49 +2,89 @@
 {% import "edit_button_and_modal_form.html" as edit_feature %}
 
 {% block content %}
-<div class="p-3"></div>
+<div class="p-2"></div>
 <div class="row">
-    <div class="row align-items-center justify-content-md-center">
-        <div class="col-auto">
-            <h2>{{ shopping_list.name }}</h2>
+    <div class="row align-items-center">
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <div class="row align-items-center">
+                <div class="col-auto text-end">
+                    <h2>{{ shopping_list.name }}</h2>
+                </div>
+                <div class="col-auto text-start">
+                    {{ edit_feature.button(
+                        button_id='rename_shopping_list_button',
+                        element_id=shopping_list.id,
+                        modal_id='rename_shopping_list_modal'
+                        )
+                    }}
+                </div>
+                {{ edit_feature.modal_form(
+                    modal_id='rename_shopping_list_modal',
+                    edit_form=rename_shopping_list_form,
+                    edit_form_url=url_for("rename_shopping_list")
+                    )
+                }}
+            </div>
         </div>
-        <div class="col-auto">
-            {{ edit_feature.button(
-                button_id='rename_shopping_list_button',
-                element_id=shopping_list.id,
-                modal_id='rename_shopping_list_modal'
-                )
-            }}
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+    </div>
+    <div class="row">
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <p class="fw-light text-start">
+                Создан: {{ shopping_list.created_at.strftime("%d.%m.%Y %H:%M ") }}
+            </p>
         </div>
-        {{ edit_feature.modal_form(
-            modal_id='rename_shopping_list_modal',
-            edit_form=rename_shopping_list_form,
-            edit_form_url=url_for("rename_shopping_list")
-            )
-        }}
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+    </div>
+    <div class="row justify-content-md-center">
+            <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+                <div class="col-sm-8 col-md-8 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <form class="add-item-form"
+              action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
+              method="POST">
+                        <div class="row row-cols-xs-auto g-3 justify-content-md-center">
+
+            {{ add_shopping_item_form.csrf_token }}
+                            <div class="cols-xs-auto col-md">
+                                {{ add_shopping_item_form.name(placeholder="Продукт") }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ add_shopping_item_form.quantity(placeholder="Количество") }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ add_shopping_item_form.unit() }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ add_shopping_item_form.submit }}
+                            </div>
+
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+                    </div>
+                <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+
     </div>
     <div class="p-2"></div>
-    <div class="row align-items-center justify-content-md-center">
-        <form class="add-item-form" action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
-              method="POST">
-            {{ add_shopping_item_form.csrf_token }}
-            <div class="row justify-content-md-center">
-                <div class="col-auto ">
-                    {{ add_shopping_item_form.name(placeholder="Название продукта") }}
-                </div>
-                <div class="col-auto">
-                    {{ add_shopping_item_form.quantity(placeholder="Количество") }}
-                </div>
-                <div class="col-auto">
-                    {{ add_shopping_item_form.submit }}
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="p-3 text-center space-for-messages"></div>
     <div class="row justify-content-md-center">
-        <div class="col-auto"></div>
-        <div class="col-6">
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <a href="{{ url_for('choose_recipe_to_add', shopping_list_public_id = shopping_list.public_id) }}"
+               class="btn btn-primary btn-block w-100">
+               Добавить ингредиенты из рецепта
+            </a>
+        </div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+    </div>
+    <div class="p-2 text-center space-for-messages"></div>
+    <div class="row justify-content-md-center">
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
             <ul class="list-group shopping-list">
                 {% for item in shopping_list.shopping_items|sort(attribute="checked,name") %}
                 <li class="list-group-item shopping-list-item">
@@ -60,10 +100,10 @@
                                     for="check_item_{{ item.id }}">{{ item.name }}
                             </label>
                         </div>
-                        <div class="col-2 text-end">
-                            <span class="align-middle">{%if item.quantity %}{{ item.quantity }}{% endif %}</span>
+                        <div class="col-3 text-end">
+                            <span class="align-middle">{%if item.quantity %}{{ item.quantity }} {{ item.unit }}{% endif %}</span>
                         </div>
-                        <div class="col-2 text-end">
+                        <div class="col-1 text-end">
                             {{edit_feature.button(
                                 button_id='edit_quantity',
                                 modal_id='edit_quantity_modal',
@@ -88,9 +128,12 @@
                                data-toggle="tooltip"
                                data-placement="right"
                                title="Удалить">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     width="16"
+                                     height="16"
                                      fill="currentColor"
-                                     class="bi bi-trash3" viewBox="0 0 16 16">
+                                     class="bi bi-trash3"
+                                     viewBox="0 0 16 16">
                                     <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
                                 </svg>
                             </a>
@@ -100,7 +143,7 @@
                 {%endfor%}
             </ul>
         </div>
-        <div class="col-auto"></div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
     </div>
 </div>
 {% endblock %}

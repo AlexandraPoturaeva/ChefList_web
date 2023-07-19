@@ -1,32 +1,36 @@
 {% extends "base.html" %} {% block content %}
-<form action="{{ url_for('login') }}" method="POST">
-  {{ form.hidden_tag() }}
+<div class="row">
+  <div class="hidden-xs col-sm-1 col-md-3 col-lg-4"></div>
+  <div class="col-xs-12 col-sm-10 col-md-6 col-lg-4 text-center">
+    <div class="p-5"></div>
+    <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+      <form action="{{ url_for('login') }}" method="POST">
+        {{ form.hidden_tag() }}
 
-  <h1 class="h3 mb-3 fw-normal">Вход на сайт</h1>
+        <h1 class="h3 mb-3 fw-normal">Вход на сайт</h1>
 
-  <div class="form-floating">
-    {{ form.email(placeholder="name@example.ru") }} {{
-    form.email.label(class="form-label") }}
+        <div class="form-floating mb-3">
+          {{ form.email(placeholder="name@example.ru") }} {{
+          form.email.label(class="form-label") }}
+        </div>
+
+        <div class="form-floating mb-3">
+          {{ form.password(placeholder="Пароль") }} {{
+          form.password.label(class="form-label") }}
+        </div>
+
+        {{ form.submit }}
+        <div class="p-2"></div>
+        <p class="fs-6">
+          Нет аккаунта?
+          <a href="{{ url_for('registration') }}" class="link-primary"
+            >Зарегистрироваться</a
+          >
+        </p>
+        <p class="text-body-secondary">&copy; 2023</p>
+      </form>
+    </div>
   </div>
-
-  <div class="form-floating">
-    {{ form.password(placeholder="Пароль") }} {{
-    form.password.label(class="form-label") }}
-  </div>
-
-  <div class="form-check text-start my-3">
-    {{ form.remember_me() }} {{ form.remember_me.label(class="form-check-label")
-    }}
-  </div>
-
-  {{ form.submit }}
-  <div class="p-2"></div>
-  <p class="fs-6">
-    Нет аккаунта?
-    <a href="{{ url_for('registration') }}" class="link-primary"
-      >Зарегистрироваться</a
-    >
-  </p>
-  <p class="mt-5 mb-3 text-body-secondary">&copy; 2023</p>
-</form>
+  <div class="hidden-xs col-sm-1 col-md-3 col-lg-4"></div>
+</div>
 {% endblock %}
