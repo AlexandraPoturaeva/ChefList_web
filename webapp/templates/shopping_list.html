@@ -5,28 +5,39 @@
 <div class="p-2"></div>
 <div class="row">
     <div class="row align-items-center">
-        <div class="col-6 text-end">
-            <h2>{{ shopping_list.name }}</h2>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <div class="row align-items-center">
+                <div class="col-auto text-end">
+                    <h2>{{ shopping_list.name }}</h2>
+                </div>
+                <div class="col-auto text-start">
+                    {{ edit_feature.button(
+                        button_id='rename_shopping_list_button',
+                        element_id=shopping_list.id,
+                        modal_id='rename_shopping_list_modal'
+                        )
+                    }}
+                </div>
+                {{ edit_feature.modal_form(
+                    modal_id='rename_shopping_list_modal',
+                    edit_form=rename_shopping_list_form,
+                    edit_form_url=url_for("rename_shopping_list")
+                    )
+                }}
+            </div>
         </div>
-        <div class="col-6 text-start">
-            {{ edit_feature.button(
-                button_id='rename_shopping_list_button',
-                element_id=shopping_list.id,
-                modal_id='rename_shopping_list_modal'
-                )
-            }}
-        </div>
-        {{ edit_feature.modal_form(
-            modal_id='rename_shopping_list_modal',
-            edit_form=rename_shopping_list_form,
-            edit_form_url=url_for("rename_shopping_list")
-            )
-        }}
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
     </div>
     <div class="row">
-        <p class="fw-light text-center">Создан: {{ shopping_list.created_at.strftime("%d.%m.%Y %H:%M ") }}</p>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <p class="fw-light text-start">
+                Создан: {{ shopping_list.created_at.strftime("%d.%m.%Y %H:%M ") }}
+            </p>
+        </div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
     </div>
-    <div class="p-1"></div>
     <div class="row justify-content-md-center">
             <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
                 <div class="col-sm-8 col-md-8 col-lg-4">
@@ -63,9 +74,13 @@
     <div class="row justify-content-md-center">
         <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
         <div class="col-sm-8 col-md-8 col-lg-4">
-            <a href="{{ url_for('choose_recipe_to_add', shopping_list_public_id = shopping_list.public_id) }}" class="btn btn-primary">Добавить ингредиенты из рецепта</a>
+            <a href="{{ url_for('choose_recipe_to_add', shopping_list_public_id = shopping_list.public_id) }}"
+               class="btn btn-primary btn-block w-100">
+               Добавить ингредиенты из рецепта
+            </a>
         </div>
         <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+    </div>
     <div class="p-2 text-center space-for-messages"></div>
     <div class="row justify-content-md-center">
         <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
