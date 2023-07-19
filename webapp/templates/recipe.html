@@ -1,31 +1,22 @@
 {% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
 <div class="row">
   <div class="col"></div>
-  <div class="col-5">
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#add_recipe_to_shopping_list"
-    >
+  <div class="col-3">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add_recipe_to_shopping_list">
       Добавить рецепт в список покупок
     </button>
+    {% if current_user.id != recipe.user_id %}
+    <a class="btn btn-success w-100 py-2" href="{{ url_for('add_to_my_recipes', recipe_id=recipe.id) }}">
+      Добавить рецепт в Мои рецепты</a>
+    {% endif %}
   </div>
   <div class="col"></div>
-  <div
-    class="modal fade create-new-list"
-    id="add_recipe_to_shopping_list"
-    tabindex="-1"
-    aria-hidden="true"
-  >
+  <div class="modal fade create-new-list" id="add_recipe_to_shopping_list" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-body">
           <div class="col 12 text-center">
-            <form
-              action=" {{ url_for('add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
-              method="POST"
-            >
+            <form action=" {{ url_for('add_recipe_to_shopping_list', recipe_id=recipe.id) }}" method="POST">
               {{ form.hidden_tag() }}
               <div class="form-floating mb-3">
                 {{ form.name(placeholder="Название списка") }} {{
@@ -42,5 +33,5 @@
       </div>
     </div>
   </div>
-  {% endblock %}
 </div>
+{% endblock %}

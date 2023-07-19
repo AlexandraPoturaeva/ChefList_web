@@ -391,6 +391,48 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
         return redirect(url_for("my_recipes"))
 
+    @app.route("/add_to_my_recipes/<int:recipe_id>")
+    @login_required
+    def add_to_my_recipes(recipe_id):
+        recipe = Recipe.query.get(recipe_id)
+
+        recipe_owner_name = User.query.get(recipe.user_id).name
+        new_name = f"{recipe.name} by {recipe_owner_name}"
+
+        exist_chef_recipe = Recipe.query.filter(
+            Recipe.name == new_name, Recipe.user_id == current_user.id
+        ).one_or_none()
+        if exist_chef_recipe:
+            db.session.delete(exist_chef_recipe)
+            db.session.commit()
+
+        my_recipe = Recipe(
+            name=new_name,
+            user_id=current_user.id,
+            category=recipe.category,
+            description=recipe.description,
+            preparation_time=recipe.preparation_time,
+            cooking_time=recipe.cooking_time,
+        )
+        db.session.add(my_recipe)
+        db.session.commit()
+        my_recipe = Recipe.query.filter(
+            Recipe.name == new_name, Recipe.user_id == current_user.id
+        ).one()
+
+        for ingredient in recipe.ingredients:
+            my_ingredient = Ingredient(
+                product_id=ingredient.product_id,
+                quantity=ingredient.quantity,
+                unit=ingredient.unit,
+                recipe_id=my_recipe.id,
+            )
+            db.session.add(my_ingredient)
+        db.session.commit()
+
+        flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
+        return redirect(url_for("recipes", recipe_id=recipe_id))
+
     @app.route("/my-lists")
     @login_required
     def show_my_shopping_lists():
