@@ -197,8 +197,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     def recipes():
         admin = User.query.filter(User.name == "admin").one_or_none()
         if admin:
-            public_recipes = Recipe.query.filter(Recipe.user_id == admin.id).all()
-            return render_template("public_recipes.html", public_recipes=public_recipes)
+            return render_template("public_recipes.html", public_recipes=admin.recipes)
         else:
             flash("Нет общедоступных рецептов!", category="danger")
             return redirect(url_for("index"))
@@ -206,8 +205,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/my_recipes")
     @login_required
     def my_recipes():
-        user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
-        return render_template("my_recipes.html", user_recipes=user_recipes)
+        return render_template("my_recipes.html", user_recipes=current_user.recipes)
 
     @app.route("/add_recipe", methods=["POST", "GET"])
     @login_required
@@ -269,7 +267,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
     @login_required
     def add_ingredient(recipe_id):
-        print(Recipe.query.all())
         try:
             recipe = db.session.query(Recipe).get(recipe_id)
         except:
@@ -353,10 +350,8 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 flash("У Вас нет прав на доступ к этому рецепту!")
                 return redirect(url_for("recipes"))
         form = ChooseListForm()
-        shopping_lists_count = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).count()
-        if shopping_lists_count == 0:
+
+        if len(current_user.shopping_lists) == 0:
             new_shopping_list = ShoppingList(
                 name="Мой список покупок",
                 user_id=current_user.id,
@@ -364,11 +359,10 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             )
             db.session.add(new_shopping_list)
             db.session.commit()
-        shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).all()
-        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
-        form.name.choices = shopping_lists_names
+
+        form.name.choices = [
+            shopping_list.name for shopping_list in current_user.shopping_lists
+        ]
 
         return render_template(
             "recipe.html",
@@ -606,12 +600,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/add_recipe_to_shopping_list/<int:recipe_id>", methods=["POST"])
     def add_recipe_to_shopping_list(recipe_id):
         form = ChooseListForm()
-
-        shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).all()
-        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
-        form.name.choices = shopping_lists_names
+        form.name.choices = [
+            shopping_list.name for shopping_list in current_user.shopping_lists
+        ]
         if form.validate_on_submit():
             chosen_shopping_list = ShoppingList.query.filter(
                 ShoppingList.name == form.name.data,
@@ -641,8 +632,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         "/choose_recipe_to_add/<shopping_list_public_id>", methods=["GET", "POST"]
     )
     def choose_recipe_to_add(shopping_list_public_id):
-        user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
-
         recipe_id = request.form.get("recipe_id")
         portions = request.form.get("portions")
 
@@ -658,7 +647,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
         return render_template(
             "choose_recipe_to_add.html",
-            user_recipes=user_recipes,
+            user_recipes=current_user.recipes,
             shopping_list_public_id=shopping_list_public_id,
         )
 
