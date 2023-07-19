@@ -3,9 +3,10 @@
 
 {% block content %}
 <div class="row">
-    <div class="col"></div>
-    <div class="col-5">
+    <div class="hidden-xs col-sm-2 col-md-3 col-lg-3"></div>
+    <div class="col-sm-8 col-md-6 col-lg-5">
         <h2>Мои списки покупок</h2>
+        <div class="p-2"></div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create_new_list">
             Создать новый список
         </button>
@@ -13,9 +14,9 @@
         <table id='my_shopping_lists' class="table table-striped">
             <thead>
             <tr>
-                <th scope="col">Название</th>
+                <th scope="col">Имя</th>
                 <th scope="col"></th>
-                <th scope="col">Дата создания</th>
+                <th scope="col">Создан</th>
                 <th scope="col"></th>
                 <th scope="col"></th>
             </tr>
@@ -25,17 +26,16 @@
             <tr>
                 <td class="align-middle">
                     <a href="{{ url_for('show_shopping_list', public_id = list.public_id) }}"
-                       class="link-dark link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">
-                       {{ list.name }}
+                       class="link-body-emphasis link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover">
+                       {{list.name }}
                     </a>
                 </td>
                 <td>
                     {{ edit_shopping_list_name.button(
-                    button_id='rename_shopping_list_button',
-                    modal_id='rename_shopping_list_modal',
-                    element_id=list.id
-                    )
-                    }}
+                        button_id='rename_shopping_list_button',
+                        modal_id='rename_shopping_list_modal',
+                        element_id=list.id
+                    )}}
                 </td>
                 <td class="align-middle">{{ list.created_at.strftime("%d.%m.%Y") }}</td>
                 <td>
@@ -75,7 +75,7 @@
             </tbody>
         </table>
     </div>
-    <div class="col"></div>
+    <div class="hidden-xs col-sm-2 col-md-3 col-lg-4"></div>
 </div>
 <div class="modal fade create-new-list" id="create_new_list" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -96,9 +96,8 @@
     </div>
 </div>
 {{ edit_shopping_list_name.modal_form(
-modal_id='rename_shopping_list_modal',
-edit_form=rename_shopping_list_form,
-edit_form_url=url_for("rename_shopping_list")
-)
-}}
+    modal_id='rename_shopping_list_modal',
+    edit_form=rename_shopping_list_form,
+    edit_form_url=url_for("rename_shopping_list")
+)}}
 {% endblock %}
