@@ -48,10 +48,14 @@
             </div>
         </form>
     </div>
+    <div class="p-2"></div>
     <div class="row justify-content-md-center">
-        <a href="{{ url_for('choose_recipe_to_add', shopping_list_id = shopping_list.id) }}" class="btn btn-primary">Добавить ингредиенты из рецепта</a>
-    </div>
-    <div class="p-3 text-center space-for-messages"></div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <a href="{{ url_for('choose_recipe_to_add', shopping_list_public_id = shopping_list.public_id) }}" class="btn btn-primary">Добавить ингредиенты из рецепта</a>
+        </div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+    <div class="p-2 text-center space-for-messages"></div>
     <div class="row justify-content-md-center">
         <div class="col-auto"></div>
         <div class="col-6">
