@@ -270,10 +270,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @login_required
     def add_ingredient(recipe_id):
         print(Recipe.query.all())
-        try:
-            recipe = db.session.query(Recipe).get(recipe_id)
-        except:
-            flash("Неверный идентификатор рецепта")
+
+        recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        if not recipe:
             return redirect(url_for("my_recipes"))
 
         if request.method == "GET":
@@ -332,9 +331,8 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
     @app.route("/recipes/<int:recipe_id>")
     def recipe(recipe_id):
-        try:
-            recipe = db.session.query(Recipe).get(recipe_id)
-        except:
+        recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        if not recipe:
             return redirect(url_for("recipes"))
 
         admin = User.query.filter(User.name == "admin").one_or_none()
@@ -381,13 +379,11 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/delete_recipe/<int:recipe_id>")
     @login_required
     def delete_recipe(recipe_id):
-        try:
-            recipe_to_delete = Recipe.query.get(recipe_id)
+        recipe_to_delete = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        if recipe_to_delete:
             db.session.delete(recipe_to_delete)
             db.session.commit()
             flash("Рецепт удалён.", category="success")
-        except:
-            flash("При удалении рецепта возникла ошибка.", category="danger")
 
         return redirect(url_for("my_recipes"))
 
