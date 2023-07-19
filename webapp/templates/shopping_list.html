@@ -101,7 +101,7 @@
                             </label>
                         </div>
                         <div class="col-3 text-end">
-                            <span class="align-middle">{%if item.quantity %}{{ item.quantity }} {{ item.unit }}{% endif %}</span>
+                            <span class="align-middle">{%if item.quantity != 0 %}{{ item.quantity }} {{ item.unit }}{% endif %}</span>
                         </div>
                         <div class="col-1 text-end">
                             {{edit_feature.button(
