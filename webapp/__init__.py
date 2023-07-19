@@ -232,7 +232,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             category = form.category.data
 
             description = form.description.data
-            preparation_time = form.preparation_time.data
             cooking_time = form.cooking_time.data
 
             recipe = Recipe(
@@ -240,7 +239,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 user_id=current_user.id,
                 category=category,
                 description=description,
-                preparation_time=preparation_time,
                 cooking_time=cooking_time,
             )
             db.session.add(recipe)

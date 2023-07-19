@@ -8,10 +8,10 @@
   <p class="fs-3 col-6 mx-auto text-center">{{ recipe.category }}</p>
   <p class="fw-bold fs-4">Описание:</p>
   <p class="fs-5 col-6 mx-auto">{{ recipe.description }}</p>
-  <p class="fw-bold fs-4">Время на подготовку:</p>
-  <p class="fs-5 col-6 mx-auto">{{ recipe.preparation_time }} мин.</p>
+  {% if recipe.cooking_time %}
   <p class="fw-bold fs-4">Время на приготовление:</p>
   <p class="fs-5 col-6 mx-auto">{{ recipe.cooking_time }} мин.</p>
+  {% endif %}
   <p class="fw-bold fs-4">Для приготовления Вам потребуется:</p>
   <div class="col-6 mx-auto">
     <ul class="list-group">

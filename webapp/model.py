@@ -84,7 +84,6 @@ class Recipe(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     category = db.Column(db.Text)
     description = db.Column(db.Text)
-    preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     ingredients = db.relationship(
