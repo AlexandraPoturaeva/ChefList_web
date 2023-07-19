@@ -45,6 +45,12 @@ UNITS = [
 ]
 
 
+class ProjectSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+
+
 class User(db.Model, UserMixin):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
@@ -78,10 +84,6 @@ class Product(db.Model):
     name = db.Column(db.Text, nullable=False, index=True, unique=True)
     category = db.Column(db.Text)
 
-    def __init__(self, name, category):
-        self.name = name
-        self.category = category
-
     def __repr__(self):
         return f"<Product: {self.name}, category: {self.category}>"
 
@@ -99,16 +101,6 @@ class Recipe(db.Model):
         "Ingredient", backref="recipe", lazy=True, cascade="all, delete"
     )
 
-    def __init__(
-        self, name, user_id, category, description, preparation_time, cooking_time
-    ):
-        self.name = name
-        self.user_id = user_id
-        self.category = category
-        self.description = description
-        self.preparation_time = preparation_time
-        self.cooking_time = cooking_time
-
     def __repr__(self):
         return f"<Recipe: {self.name} by user with id {self.user_id}>"
 
@@ -120,12 +112,6 @@ class Ingredient(db.Model):
     unit = db.Column(db.Text)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
     product = db.relationship("Product")
-
-    def __init__(self, product_id, quantity, unit, recipe_id):
-        self.product_id = product_id
-        self.quantity = quantity
-        self.unit = unit
-        self.recipe_id = recipe_id
 
     def __str__(self):
         product_name = db.session.query(Product).get(self.product_id).name

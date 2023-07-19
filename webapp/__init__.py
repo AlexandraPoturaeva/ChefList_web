@@ -12,7 +12,9 @@ from flask_login import (
     logout_user,
 )
 from flask_migrate import Migrate
+from populate_db import populate_db
 from sqlalchemy import func
+from webapp.config import ADMIN_EMAIL, ADMIN_PASSWORD
 from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
@@ -30,6 +32,7 @@ from webapp.model import (
     Ingredient,
     Product,
     UNITS,
+    ProjectSettings,
     Recipe,
     ShoppingList,
     ShoppingItem,
@@ -667,6 +670,24 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             user_recipes=user_recipes,
             shopping_list_public_id=shopping_list_public_id,
         )
+
+    @app.route("/populate_db")
+    def populate_db_view():
+        db.create_all()
+        if populate_db(
+            app,
+            ADMIN_EMAIL,
+            ADMIN_PASSWORD,
+            db,
+            Ingredient,
+            Product,
+            ProjectSettings,
+            User,
+            Recipe,
+        ):
+            return "ok"
+        else:
+            return "fail"
 
     return app
 
