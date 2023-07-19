@@ -1,42 +1,46 @@
-<!DOCTYPE html>
-<html lang="ru">
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Рецепт: {{ to_view["name"] }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" />
-</head>
-
-<body>
-    <div class="container">
-        <div class="row">
-            {% with messages = get_flashed_messages() %} {% if messages %} {% for
-            message in messages %}
-            <div class="alert alert-danger" role="alert">{{ message }}<br /></div>
-            {% endfor %} {% endif %} {% endwith %}
-            <div class="col"></div>
-            <div class="col-5 text-center">
-                <div class="p-5"></div>
-                <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
-                    Рецепт: {{ to_view["name"] }}<br>
-                    Категория рецепта: {{ to_view["category"] }}<br>
-                    Описание: {{ to_view["description"] }}<br>
-                    Для приготовления Вам потребуется:<br>
-                    {% for ingredient in to_view["ingredients"] %}
-                    {{ ingredient }}<br>
-                    {% endfor %}
-                    Время на подготовку: {{ to_view["preparation_time"]}}<br>
-                    Время на приготовление: {{ to_view["cooking_time"]}}<br>
+{% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
+<div class="row">
+  <div class="col"></div>
+  <div class="col-5">
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#add_recipe_to_shopping_list"
+    >
+      Добавить рецепт в список покупок
+    </button>
+  </div>
+  <div class="col"></div>
+  <div
+    class="modal fade create-new-list"
+    id="add_recipe_to_shopping_list"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="col 12 text-center">
+            <form
+              action=" {{ url_for('add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
+              method="POST"
+            >
+              {{ form.hidden_tag() }}
+              <div class="form-floating mb-3">
+                {{ form.name(placeholder="Название списка") }} {{
+                form.name.label(class="form-label") }}
+                <div class="form-floating mb-3">
+                  {{ form.portions(placeholder="Количество порций") }} {{
+                  form.portions.label(class="form-label") }}
                 </div>
-            </div>
-            <div class="col"></div>
+              </div>
+              {{ form.submit }}
+            </form>
+          </div>
         </div>
+      </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
-        crossorigin="anonymous"></script>
-</body>
-
-</html>
+  </div>
+  {% endblock %}
+</div>
