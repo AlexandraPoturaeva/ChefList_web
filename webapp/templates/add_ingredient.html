@@ -1,35 +1,45 @@
 {% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
-
-<form
-  action=" {{ url_for('add_ingredient', recipe_id=recipe.id) }}"
-  method="POST"
->
-  {{ form.hidden_tag() }}
-  <h2>Добавление ингредиента</h2>
-  <div class="p-2"></div>
-  <div class="form-floating mb-3">
-    {{ form.product(placeholder="Продукт") }} {{
-    form.product.label(class="form-label") }}
+<div class="row">
+  <div class="col"></div>
+  <div class="col-7">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add_recipe_to_shopping_list">
+      Добавить ингредиент
+    </button>
   </div>
-  <div class="form-floating mb-3">
-    {{ form.category(placeholder="Категория продукта") }} {{
-    form.category.label(class="form-label") }}
+</div>
+<div class="modal fade create-new-list" id="add_recipe_to_shopping_list" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="col 12 text-center">
+          <form action=" {{ url_for('add_ingredient', recipe_id=recipe.id) }}" method="POST">
+            {{ form.hidden_tag() }}
+            <h2>Добавление ингредиента</h2>
+            <div class="p-2"></div>
+            <div class="form-floating mb-3">
+              {{ form.product(placeholder="Продукт") }} {{
+              form.product.label(class="form-label") }}
+            </div>
+            <div class="form-floating mb-3">
+              {{ form.category(placeholder="Категория продукта") }} {{
+              form.category.label(class="form-label") }}
+            </div>
+            <div class="form-floating mb-3">
+              {{ form.quantity(placeholder="Количество") }} {{
+              form.quantity.label(class="form-label") }}
+            </div>
+            <div class="form-floating mb-3">
+              {{ form.unit(placeholder="Единица измерения") }} {{
+              form.unit.label(class="form-label") }}
+            </div>
+            {{ form.add }}
+            <div class="p-2"></div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="form-floating mb-3">
-    {{ form.quantity(placeholder="Количество") }} {{
-    form.quantity.label(class="form-label") }}
-  </div>
-  <div class="form-floating mb-3">
-    {{ form.unit(placeholder="Единица измерения") }} {{
-    form.unit.label(class="form-label") }}
-  </div>
-  {{ form.add }}
-  <div class="p-2"></div>
-</form>
-<a
-  class="btn btn-success w-100 py-2"
-  href="{{ url_for('recipe', recipe_id=recipe.id) }}"
->
-  Завершить добавление ингредиентов</a
->
+</div>
+<a class="btn btn-success w-100 py-2" href="{{ url_for('recipe', recipe_id=recipe.id) }}">
+  Завершить добавление ингредиентов</a>
 {% endblock %}
