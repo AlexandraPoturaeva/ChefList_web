@@ -20,6 +20,8 @@ def populate_db(
         with app.app_context():
             admin = User(name="admin", email=ADMIN_EMAIL)
             admin.set_password(ADMIN_PASSWORD)
+            db.session.add(admin)
+            db.session.commit()
             admin_obj = User.query.filter(User.email == ADMIN_EMAIL).one_or_none()
 
             if not admin_obj:
@@ -38,6 +40,7 @@ def populate_db(
                     cooking_time=recipe["cooking_time"],
                 )
                 db.session.add(recipe_obj)
+                db.session.commit()
 
                 recipe_id = (
                     Recipe.query.filter(
@@ -58,6 +61,7 @@ def populate_db(
                             category=ingredient["product"]["category"],
                         )
                         db.session.add(product_obj)
+                        db.session.commit()
 
                         product_obj = Product.query.filter(
                             Product.name == ingredient["product"]["name"]
