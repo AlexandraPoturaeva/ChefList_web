@@ -18,6 +18,7 @@ PRODUCT_CATEGORIES = {
     "Чай, кофе, какао": "rosybrown",
     "Чипсы, орехи, сухарики": "tomato",
     "Замороженные продукты": "lightskyblue",
+    "Консервы, мёд, варенье": "gray",
 }
 
 RECIPE_CATEGORIES = {
