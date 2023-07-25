@@ -695,7 +695,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         ):
             return "ok"
         else:
-            return "fail"
+            return "failed"
 
     return app
 
