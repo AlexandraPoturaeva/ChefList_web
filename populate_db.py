@@ -3,29 +3,36 @@ from data.recipes import recipes
 
 def populate_db(
     app,
-    ADMIN_EMAIL,
-    ADMIN_PASSWORD,
+    admin_email,
+    admin_password,
     db,
-    Ingredient,
-    Product,
-    ProjectSettings,
-    User,
-    Recipe,
+    models,
 ):
-    db_populated = ProjectSettings.query.filter(
-        ProjectSettings.name == "db_populated"
+    ingredient_model, product_model, projectsettings_model, user_model, recipe_model = (
+        models["Ingredient"],
+        models["Product"],
+        models["ProjectSettings"],
+        models["User"],
+        models["Recipe"],
+    )
+
+    db_populated = projectsettings_model.query.filter(
+        projectsettings_model.name == "db_populated"
     ).one_or_none()
 
     if not db_populated:
         with app.app_context():
-            admin = User(name="admin", email=ADMIN_EMAIL)
-            admin.set_password(ADMIN_PASSWORD)
+            db.create_all()
+
+            admin = user_model(name="admin", email=admin_email)
+            admin.set_password(admin_password)
             db.session.add(admin)
-            db.session.commit()
-            admin_obj = User.query.filter(User.email == ADMIN_EMAIL).one_or_none()
+            admin_obj = user_model.query.filter(
+                user_model.email == admin_email
+            ).one_or_none()
 
             if not admin_obj:
-                print(f"Отсутствует пользователь с почтой {ADMIN_EMAIL}")
+                print(f"Отсутствует пользователь с почтой {admin_email}")
                 exit()
 
             admin_id = admin_obj.id
@@ -40,35 +47,34 @@ def populate_db(
                     cooking_time=recipe["cooking_time"],
                 )
                 db.session.add(recipe_obj)
-                db.session.commit()
 
                 recipe_id = (
-                    Recipe.query.filter(
-                        Recipe.user_id == admin_id, Recipe.name == recipe["name"]
+                    recipe_model.query.filter(
+                        recipe_model.user_id == admin_id,
+                        recipe_model.name == recipe["name"],
                     )
                     .one()
                     .id
                 )
 
                 for ingredient in recipe["ingredients"]:
-                    product_obj = Product.query.filter(
-                        Product.name == ingredient["product"]["name"]
+                    product_obj = product_model.query.filter(
+                        product_model.name == ingredient["product"]["name"]
                     ).one_or_none()
 
                     if not product_obj:
-                        product_obj = Product(
+                        product_obj = product_model(
                             name=ingredient["product"]["name"],
                             category=ingredient["product"]["category"],
                         )
                         db.session.add(product_obj)
-                        db.session.commit()
 
-                        product_obj = Product.query.filter(
-                            Product.name == ingredient["product"]["name"]
+                        product_obj = product_model.query.filter(
+                            product_model.name == ingredient["product"]["name"]
                         ).one()
 
                     product_id = product_obj.id
-                    ingredient_obj = Ingredient(
+                    ingredient_obj = ingredient_model(
                         product_id=product_id,
                         quantity=ingredient["quantity"],
                         unit=ingredient["unit"],
@@ -76,7 +82,7 @@ def populate_db(
                     )
                     db.session.add(ingredient_obj)
 
-            db_populated = ProjectSettings(name="db_populated", value="True")
+            db_populated = projectsettings_model(name="db_populated", value="True")
             db.session.add(db_populated)
             db.session.commit()
 
