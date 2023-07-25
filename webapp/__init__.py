@@ -14,7 +14,6 @@ from flask_login import (
 from flask_migrate import Migrate
 from populate_db import populate_db
 from sqlalchemy import func
-from webapp.config import ADMIN_EMAIL, ADMIN_PASSWORD
 from webapp.forms import (
     AddIngredientForm,
     AddRecipeForm,
@@ -43,6 +42,8 @@ from uuid import uuid4
 
 database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
+admin_email = os.environ.get("ADMIN_EMAIL")
+admin_password = os.environ.get("ADMIN_PASSWORD")
 
 
 def flash_errors_from_form(form):
@@ -672,18 +673,25 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         )
 
     @app.route("/populate_db")
-    def populate_db_view():
-        db.create_all()
+    def populate_db_view(admin_email=admin_email, admin_password=admin_password):
+        models = {
+            "Ingredient": Ingredient,
+            "Product": Product,
+            "ProjectSettings": ProjectSettings,
+            "User": User,
+            "Recipe": Recipe,
+        }
+
+        if not admin_email and not admin_password:
+            admin_email = app.config["ADMIN_EMAIL"]
+            admin_password = app.config["ADMIN_PASSWORD"]
+
         if populate_db(
-            app,
-            ADMIN_EMAIL,
-            ADMIN_PASSWORD,
-            db,
-            Ingredient,
-            Product,
-            ProjectSettings,
-            User,
-            Recipe,
+            app=app,
+            admin_email=admin_email,
+            admin_password=admin_password,
+            db=db,
+            models=models,
         ):
             return "ok"
         else:
