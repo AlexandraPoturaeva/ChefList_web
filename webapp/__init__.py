@@ -697,22 +697,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         else:
             return "failed"
 
-    @app.route("/drop_db")
-    def drop_db():
-        if current_user.is_admin:
-            db.drop_all()
-            return "ok"
-        else:
-            return "failed"
-
-    @app.route("/create_db")
-    def create_db_view():
-        if current_user.is_admin:
-            db.create_all()
-            return "ok"
-        else:
-            return "failed"
-
     return app
 
 

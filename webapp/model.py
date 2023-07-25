@@ -67,10 +67,6 @@ class User(db.Model, UserMixin):
         self.email = email
         self.name = name
 
-    @property
-    def is_admin(self):
-        return self.name == "admin"
-
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
