@@ -14,7 +14,7 @@ recipes = [
         "cooking_time": "10",
         "ingredients": [
             {
-                "product": {"name": "Яйца", "category": "Молоко, сыр, яйца"},
+                "product": {"name": "Яйцо куриное", "category": "Молоко, сыр, яйца"},
                 "quantity": 12,
                 "unit": "шт.",
             },
@@ -99,7 +99,7 @@ recipes = [
                 "unit": "г",
             },
             {
-                "product": {"name": "Яйца", "category": "Мясо, птица"},
+                "product": {"name": "Яйцо куриное", "category": "Мясо, птица"},
                 "quantity": 5,
                 "unit": "шт.",
             },
@@ -230,7 +230,7 @@ recipes = [
                 "unit": "шт.",
             },
             {
-                "product": {"name": "Яйца", "category": "Молоко, сыр, яйца"},
+                "product": {"name": "Яйцо куриное", "category": "Молоко, сыр, яйца"},
                 "quantity": 4,
                 "unit": "шт.",
             },

@@ -1,4 +1,5 @@
 from data.recipes import recipes
+from data.products_by_categories import products
 
 
 def populate_db(
@@ -36,6 +37,14 @@ def populate_db(
                 exit()
 
             admin_id = admin_obj.id
+
+            for category in products:
+                for product in products[category]:
+                    product_obj = product_model(
+                        name=product,
+                        category=category,
+                    )
+                    db.session.add(product_obj)
 
             for recipe in recipes:
                 recipe_obj = recipe_model(
