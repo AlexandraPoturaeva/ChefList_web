@@ -38,7 +38,7 @@ def populate_db(
             admin_id = admin_obj.id
 
             for recipe in recipes:
-                recipe_obj = Recipe(
+                recipe_obj = recipe_model(
                     user_id=admin_id,
                     name=recipe["name"],
                     category=recipe["category"],
