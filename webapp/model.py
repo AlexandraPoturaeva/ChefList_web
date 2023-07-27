@@ -83,7 +83,9 @@ class Recipe(db.Model):
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     category = db.Column(db.Text)
-    description = db.Column(db.Text)
+    description = db.relationship(
+        "RecipeDescription", backref="recipe", lazy=True, cascade="all, delete"
+    )
     preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -93,6 +95,12 @@ class Recipe(db.Model):
 
     def __repr__(self):
         return f"<Recipe: {self.name} by user with id {self.user_id}>"
+
+
+class RecipeDescription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
 
 class Ingredient(db.Model):
