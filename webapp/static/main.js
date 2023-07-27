@@ -176,7 +176,34 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
                     $('.space-for-messages').empty();
                     }, 4000);
     });
+
+    $(document).on("click", ".add-recipe-cooking-step-button", function() {
+        var cooking_step_text = $(".cooking-step-text").val();
+        var recipe_id = $(".add-recipe-cooking-step-button").data('recipe-id');
+
+        $.post(
+            "/add_recipe_description/" + recipe_id,
+            {cooking_step_text: cooking_step_text}
+            )
+            .done(function(){
+                $('.cooking-step-text')
+                .clone()
+                .removeClass('cooking-step-text')
+                .addClass('added').attr("disabled", true)
+                .insertBefore($('.cooking-step-text'));
+                $('.cooking-step-text').val('')
+            })
+            .fail(function(){
+                $('.space-for-messages').text('Что-то пошло не так...').css("color", "red");
+            });
+
+            setTimeout(function() {
+                    $('.space-for-messages').empty();
+                    }, 4000);
+
+        });
 });
+
 
 
 /*

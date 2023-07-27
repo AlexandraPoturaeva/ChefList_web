@@ -241,8 +241,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 return render_template("add_recipe.html", form=form)
 
             category = form.category.data
-
-            description = form.description.data
             preparation_time = form.preparation_time.data
             cooking_time = form.cooking_time.data
 
@@ -250,7 +248,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 name=name,
                 user_id=current_user.id,
                 category=category,
-                description=description,
                 preparation_time=preparation_time,
                 cooking_time=cooking_time,
             )
@@ -340,6 +337,21 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 recipe_id=recipe.id,
             )
         )
+
+    @app.route("/add_recipe_description/<int:recipe_id>", methods=["POST"])
+    def add_recipe_description(recipe_id):
+        cooking_step_text = request.form.get("cooking_step_text")
+
+        if cooking_step_text:
+            cooking_step_obj = RecipeDescription(
+                recipe_id=recipe_id, text=cooking_step_text
+            )
+            db.session.add(cooking_step_obj)
+            db.session.commit()
+            return "ok"
+
+        else:
+            return "failed"
 
     @app.route("/recipes/<int:recipe_id>")
     def recipe(recipe_id):

@@ -1,35 +1,34 @@
-{% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
+{% extends "base.html" %} {% block content %}
+<div class="p space-for-messages"></div>
+<h2>Этапы приготовления</h2>
+<textarea class="form-control cooking-step-text" aria-label="With textarea" rows="3"></textarea>
+<button class="btn btn-primary add-recipe-cooking-step-button" data-recipe-id='{{ recipe.id }}'>Добавить</button>
 
-<form
-  action=" {{ url_for('add_ingredient', recipe_id=recipe.id) }}"
-  method="POST"
->
-  {{ form.hidden_tag() }}
-  <h2>Добавление ингредиента</h2>
-  <div class="p-2"></div>
-  <div class="form-floating mb-3">
-    {{ form.product(placeholder="Продукт") }} {{
-    form.product.label(class="form-label") }}
-  </div>
-  <div class="form-floating mb-3">
-    {{ form.category(placeholder="Категория продукта") }} {{
-    form.category.label(class="form-label") }}
-  </div>
-  <div class="form-floating mb-3">
-    {{ form.quantity(placeholder="Количество") }} {{
-    form.quantity.label(class="form-label") }}
-  </div>
-  <div class="form-floating mb-3">
-    {{ form.unit(placeholder="Единица измерения") }} {{
-    form.unit.label(class="form-label") }}
-  </div>
-  {{ form.add }}
-  <div class="p-2"></div>
-</form>
-<a
-  class="btn btn-success w-100 py-2"
-  href="{{ url_for('recipe', recipe_id=recipe.id) }}"
->
-  Завершить добавление ингредиентов</a
->
+
+<!--<h2>Ингредиенты</h2>-->
+<!--<form action=" {{ url_for('add_ingredient', recipe_id=recipe.id) }}"-->
+<!--      method="POST">-->
+<!--    <div class="row row-cols-xs-auto g-3 justify-content-md-center">-->
+<!--        {{ form.hidden_tag() }}-->
+<!--        <div class="cols-xs-auto col-md">-->
+<!--            {{ form.product(placeholder="Продукт") }}-->
+<!--        </div>-->
+<!--        <div class="cols-xs-auto col-md-auto">-->
+<!--            {{ form.category(placeholder="Категория продукта") }}-->
+<!--        </div>-->
+<!--        <div class="cols-xs-auto col-md-auto">-->
+<!--            {{ form.quantity(placeholder="Количество") }}-->
+<!--        </div>-->
+<!--        <div class="cols-xs-auto col-md-auto">-->
+<!--            {{ form.unit(placeholder="Единица измерения") }}-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="p-2"></div>-->
+<!--    {{ form.add }}-->
+<!--</form>-->
+
+<div class="p-2"></div>
+<a class="btn btn-success w-100 py-2" href="{{ url_for('recipe', recipe_id=recipe.id) }}">
+    Завершить и показать рецепт
+</a>
 {% endblock %}
