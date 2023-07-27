@@ -33,6 +33,7 @@ from webapp.model import (
     UNITS,
     ProjectSettings,
     Recipe,
+    RecipeDescription,
     ShoppingList,
     ShoppingItem,
     RECIPE_CATEGORIES,
@@ -680,6 +681,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             "ProjectSettings": ProjectSettings,
             "User": User,
             "Recipe": Recipe,
+            "RecipeDescription": RecipeDescription,
         }
 
         if not admin_email and not admin_password:
