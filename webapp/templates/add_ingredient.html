@@ -1,7 +1,10 @@
 {% extends "base.html" %} {% block content %}
 <div class="p space-for-messages"></div>
 <h2>Этапы приготовления</h2>
-<textarea class="form-control cooking-step-text" aria-label="With textarea" rows="3"></textarea>
+<div class="input-group cooking-step-input-group mb-4">
+    <span class="input-group-text">1</span>
+    <textarea class="form-control cooking-step-text " aria-label="With textarea" rows="3"></textarea>
+</div>
 <button class="btn btn-primary add-recipe-cooking-step-button" data-recipe-id='{{ recipe.id }}'>Добавить</button>
 
 

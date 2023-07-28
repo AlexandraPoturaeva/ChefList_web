@@ -178,7 +178,7 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
     });
 
     $(document).on("click", ".add-recipe-cooking-step-button", function() {
-        var cooking_step_text = $(".cooking-step-text").val();
+        var cooking_step_text = $(".cooking-step-input-group").children('.cooking-step-text').val();
         var recipe_id = $(".add-recipe-cooking-step-button").data('recipe-id');
 
         $.post(
@@ -186,12 +186,18 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
             {cooking_step_text: cooking_step_text}
             )
             .done(function(){
-                $('.cooking-step-text')
+                let step = $('.cooking-step-input-group');
+                step
                 .clone()
-                .removeClass('cooking-step-text')
-                .addClass('added').attr("disabled", true)
-                .insertBefore($('.cooking-step-text'));
-                $('.cooking-step-text').val('')
+                .removeClass('cooking-step-input-group')
+                .addClass('cooking-step-added')
+                .insertBefore($('.cooking-step-input-group'))
+                .children('.cooking-step-text')
+                .attr("disabled", true);
+
+                step.children('.cooking-step-text').val('');
+                let cnt = parseInt(step.children('.input-group-text').html());
+                step.children('.input-group-text').html(cnt+1);
             })
             .fail(function(){
                 $('.space-for-messages').text('Что-то пошло не так...').css("color", "red");
@@ -203,8 +209,6 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
 
         });
 });
-
-
 
 /*
 The function below is called from a template.
