@@ -1,37 +1,46 @@
 {% extends "base.html" %} {% block content %}
 <div class="p space-for-messages"></div>
+
 <h2>Этапы приготовления</h2>
-<div class="input-group cooking-step-input-group mb-4">
-    <span class="input-group-text">1</span>
-    <textarea class="form-control cooking-step-text " aria-label="With textarea" rows="3"></textarea>
-</div>
-<button class="btn btn-primary add-recipe-cooking-step-button" data-recipe-id='{{ recipe.id }}'>Добавить</button>
+<form class="add-cooking-step-form">
+    <div class="new-cooking-step-input-group input-group mb-4">
+        <span class="cooking-step-num input-group-text">1</span>
+        <textarea class="new-cooking-step-text form-control" aria-label="With textarea" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="add-cooking-step-button btn btn-primary" data-recipe-id='{{ recipe_id }}'>Добавить</button>
+</form>
 
-
-<!--<h2>Ингредиенты</h2>-->
-<!--<form action=" {{ url_for('add_ingredient', recipe_id=recipe.id) }}"-->
-<!--      method="POST">-->
-<!--    <div class="row row-cols-xs-auto g-3 justify-content-md-center">-->
-<!--        {{ form.hidden_tag() }}-->
-<!--        <div class="cols-xs-auto col-md">-->
-<!--            {{ form.product(placeholder="Продукт") }}-->
-<!--        </div>-->
-<!--        <div class="cols-xs-auto col-md-auto">-->
-<!--            {{ form.category(placeholder="Категория продукта") }}-->
-<!--        </div>-->
-<!--        <div class="cols-xs-auto col-md-auto">-->
-<!--            {{ form.quantity(placeholder="Количество") }}-->
-<!--        </div>-->
-<!--        <div class="cols-xs-auto col-md-auto">-->
-<!--            {{ form.unit(placeholder="Единица измерения") }}-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    <div class="p-2"></div>-->
-<!--    {{ form.add }}-->
-<!--</form>-->
+<h2>Ингредиенты</h2>
+<form class="add-ingredient-form">
+    <div class="new-ingredient-data row row-cols-xs-auto g-3 justify-content-md-center mb-3">
+        <div class="cols-xs-auto col-md">
+            <input class="product-name form-control" type="text" placeholder="Продукт" aria-label="default input example" required>
+        </div>
+        <div class="cols-xs-auto col-md-auto">
+            <select class="product-category form-select" aria-label="Default select example" required>
+                <option value="">Категория продукта</option>
+                {% for category in PRODUCT_CATEGORIES.keys() %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="cols-xs-auto col-md-auto">
+            <input class='ingredient-quantity form-control' min="1" type="number" value="1">
+        </div>
+        <div class="cols-xs-auto col-md-auto">
+            <select class="ingredient-unit form-select" aria-label="Default select example" required>
+                <option value="">Единица измерения</option>
+                {% for unit in UNITS %}
+                    <option value="{{ unit }}">{{ unit }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+<button type="submit" class="add-ingredient-button btn btn-primary" data-recipe-id='{{ recipe_id }}'>Добавить</button>
+</form>
 
 <div class="p-2"></div>
-<a class="btn btn-success w-100 py-2" href="{{ url_for('recipe', recipe_id=recipe.id) }}">
+<a class="btn btn-success w-100 py-2" href="{{ url_for('recipe', recipe_id=recipe_id) }}">
     Завершить и показать рецепт
 </a>
 {% endblock %}
