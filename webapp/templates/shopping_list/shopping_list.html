@@ -22,7 +22,7 @@
                 {{ edit_feature.modal_form(
                     modal_id='rename_shopping_list_modal',
                     edit_form=rename_shopping_list_form,
-                    edit_form_url=url_for("rename_shopping_list")
+                    edit_form_url=url_for("shopping_list.rename_shopping_list")
                     )
                 }}
             </div>
@@ -44,7 +44,7 @@
                     <div class="card">
                         <div class="card-body">
                             <form class="add-item-form"
-              action=" {{ url_for('add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
+              action=" {{ url_for('shopping_list.add_item_to_shopping_list', shopping_list_public_id = shopping_list.public_id) }}"
               method="POST">
                         <div class="row row-cols-xs-auto g-3 justify-content-md-center">
 
@@ -74,7 +74,7 @@
     <div class="row justify-content-md-center">
         <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
         <div class="col-sm-8 col-md-8 col-lg-4">
-            <a href="{{ url_for('choose_recipe_to_add', shopping_list_public_id = shopping_list.public_id) }}"
+            <a href="{{ url_for('shopping_list.choose_recipe_to_add', shopping_list_public_id = shopping_list.public_id) }}"
                class="btn btn-primary btn-block w-100">
                Добавить ингредиенты из рецепта
             </a>
@@ -114,13 +114,13 @@
                         {{ edit_feature.modal_form(
                             modal_id = 'edit_quantity_modal',
                             edit_form=edit_quantity_of_shopping_item_form,
-                            edit_form_url=url_for("edit_quantity_of_shopping_item")
+                            edit_form_url=url_for("shopping_list.edit_quantity_of_shopping_item")
                             )
                         }}
                         <div class="col-2 text-end">
                             <a class="btn"
                                href="{{
-                                       url_for('delete_item_from_shopping_list',
+                                       url_for('shopping_list.delete_item_from_shopping_list',
                                        item_id = item.id,
                                        shopping_list_public_id = shopping_list.public_id)
                                        }}"

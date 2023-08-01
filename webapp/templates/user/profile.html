@@ -2,5 +2,5 @@
 {% block content %}
 <div class="p-5"></div>
 <h2> Логин: {{ user.email }} <br> Дата регистрации: {{ user.created_at }} </h2>
-<p><a href="{{ url_for('logout') }}" class="link-primary">Выйти</a></p>
+<p><a href="{{ url_for('user.logout') }}" class="link-primary">Выйти</a></p>
 {% endblock %}

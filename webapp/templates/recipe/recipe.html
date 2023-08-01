@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
+{% extends "base.html" %} {% block content %} {% include 'recipe/static_recipe.html' %}
 <div class="row">
   <div class="col"></div>
   <div class="col-5">
@@ -23,7 +23,7 @@
         <div class="modal-body">
           <div class="col 12 text-center">
             <form
-              action=" {{ url_for('add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
+              action=" {{ url_for('recipe.add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
               method="POST"
             >
               {{ form.hidden_tag() }}

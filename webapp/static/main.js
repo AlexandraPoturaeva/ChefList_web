@@ -93,7 +93,7 @@ on a input (checkbox) with class ended with "check-item".
 
         // send data to the server using a HTTP POST request
         $.post(
-            "/shopping-item-checkbox", // url to which the request is sent
+            "/shopping_lists/shopping-item-checkbox", // url to which the request is sent
             {
                 item_id: $(this).data('id'), // data sent to the url (value of data-id of checkbox)
                 state_of_checkbox: checked // another data sent to the url (value of the variable "checked")
@@ -162,7 +162,7 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
          let button_svg_path = $(this).children('svg').children('path.svg-path');
 
          $.post(
-            "/choose_recipe_to_add/" + shopping_list_public_id,
+            "/shopping_lists/choose_recipe_to_add/" + shopping_list_public_id,
             {recipe_id: recipe_id, portions: portions})
             .done(function(){
                 add_button.removeClass("btn-danger").addClass("btn-success")
