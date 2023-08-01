@@ -9,12 +9,20 @@ def populate_db(
     db,
     models,
 ):
-    ingredient_model, product_model, projectsettings_model, user_model, recipe_model = (
+    (
+        ingredient_model,
+        product_model,
+        projectsettings_model,
+        user_model,
+        recipe_model,
+        recipe_description_model,
+    ) = (
         models["Ingredient"],
         models["Product"],
         models["ProjectSettings"],
         models["User"],
         models["Recipe"],
+        models["RecipeDescription"],
     )
 
     db_populated = projectsettings_model.query.filter(
@@ -51,7 +59,6 @@ def populate_db(
                     user_id=admin_id,
                     name=recipe["name"],
                     category=recipe["category"],
-                    description=recipe["description"],
                     preparation_time=recipe["preparation_time"],
                     cooking_time=recipe["cooking_time"],
                 )
@@ -65,6 +72,11 @@ def populate_db(
                     .one()
                     .id
                 )
+                for step in recipe["description"]:
+                    step_obj = recipe_description_model(
+                        recipe_id=recipe_id, text=step["text"]
+                    )
+                    db.session.add(step_obj)
 
                 for ingredient in recipe["ingredients"]:
                     product_obj = product_model.query.filter(

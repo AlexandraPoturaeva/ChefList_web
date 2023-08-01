@@ -8,15 +8,17 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from populate_db import populate_db
 from webapp.shopping_list.models import ShoppingList
-from webapp.db import db
+from webapp.db import db, ProjectSettings
 from webapp.user.models import User
+from webapp.recipe.models import Ingredient, Product, Recipe, RecipeDescription
 from webapp.recipe.views import blueprint as recipe_blueprint
 from webapp.user.views import blueprint as user_blueprint
 from webapp.shopping_list.views import blueprint as shopping_list_blueprint
 
 database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
-
+admin_email = os.environ.get("ADMIN_EMAIL")
+admin_password = os.environ.get("ADMIN_PASSWORD")
 
 def create_app(database_uri=database_uri, secret_key=secret_key):
     app = Flask(__name__)
@@ -62,6 +64,32 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 return redirect(url_for("shopping_list.show_my_shopping_lists"))
 
         return render_template("index.html")
+
+    @app.route("/populate_db")
+    def populate_db_view(admin_email=admin_email, admin_password=admin_password):
+        models = {
+            "Ingredient": Ingredient,
+            "Product": Product,
+            "ProjectSettings": ProjectSettings,
+            "User": User,
+            "Recipe": Recipe,
+            "RecipeDescription": RecipeDescription,
+        }
+
+        if not admin_email and not admin_password:
+            admin_email = app.config["ADMIN_EMAIL"]
+            admin_password = app.config["ADMIN_PASSWORD"]
+
+        if populate_db(
+            app=app,
+            admin_email=admin_email,
+            admin_password=admin_password,
+            db=db,
+            models=models,
+        ):
+            return "ok"
+        else:
+            return "failed"
 
     return app
 
