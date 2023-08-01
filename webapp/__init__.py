@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from flask import Flask, redirect, render_template, url_for
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
+from populate_db import populate_db
 from webapp.shopping_list.models import ShoppingList
 from webapp.db import db
 from webapp.user.models import User
