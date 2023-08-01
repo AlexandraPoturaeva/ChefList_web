@@ -35,6 +35,6 @@ if __name__ == "__main__":
 
     if html:
         result = get_products_by_category(html)
-        with open("products_by_categories.py", "w", encoding="utf8") as f:
+        with open("products_by_categories_draft.py", "w", encoding="utf8") as f:
             f.write("products = ")
             json.dump(result, f, ensure_ascii=False)
