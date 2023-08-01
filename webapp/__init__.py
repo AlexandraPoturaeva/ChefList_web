@@ -15,7 +15,6 @@ from flask_migrate import Migrate
 from populate_db import populate_db
 from sqlalchemy import func
 from webapp.forms import (
-    AddIngredientForm,
     AddRecipeForm,
     AddShoppingItem,
     ChooseListForm,
