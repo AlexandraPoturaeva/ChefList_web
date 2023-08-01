@@ -12,6 +12,7 @@ from flask_login import (
     logout_user,
 )
 from flask_migrate import Migrate
+from populate_db import populate_db
 from sqlalchemy import func
 from webapp.forms import (
     AddIngredientForm,
@@ -30,6 +31,7 @@ from webapp.model import (
     Ingredient,
     Product,
     UNITS,
+    ProjectSettings,
     Recipe,
     ShoppingList,
     ShoppingItem,
@@ -40,6 +42,8 @@ from uuid import uuid4
 
 database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
+admin_email = os.environ.get("ADMIN_EMAIL")
+admin_password = os.environ.get("ADMIN_PASSWORD")
 
 
 def flash_errors_from_form(form):
@@ -138,16 +142,22 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         form = RegistrationForm()
         if form.validate_on_submit():
             user_name = form.name.data
-            user_email = form.email.data.lower()
-            new_user = User(name=user_name, email=user_email)
-            new_user.set_password(form.password.data)
-            db.session.add(new_user)
-            db.session.commit()
-            flash("Вы успешно зарегистрировались", category="success")
-            return redirect(url_for("login"))
 
-        else:
-            flash_errors_from_form(form)
+            if user_name.lower() == "admin":
+                flash(
+                    "Регистрация под таким именем невозможна",
+                    category="danger",
+                )
+            else:
+                user_email = form.email.data.lower()
+                new_user = User(name=user_name, email=user_email)
+                new_user.set_password(form.password.data)
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Вы успешно зарегистрировались", category="success")
+                return redirect(url_for("login"))
+
+        flash_errors_from_form(form)
         return redirect(url_for("registration"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -661,6 +671,31 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             user_recipes=user_recipes,
             shopping_list_public_id=shopping_list_public_id,
         )
+
+    @app.route("/populate_db")
+    def populate_db_view(admin_email=admin_email, admin_password=admin_password):
+        models = {
+            "Ingredient": Ingredient,
+            "Product": Product,
+            "ProjectSettings": ProjectSettings,
+            "User": User,
+            "Recipe": Recipe,
+        }
+
+        if not admin_email and not admin_password:
+            admin_email = app.config["ADMIN_EMAIL"]
+            admin_password = app.config["ADMIN_PASSWORD"]
+
+        if populate_db(
+            app=app,
+            admin_email=admin_email,
+            admin_password=admin_password,
+            db=db,
+            models=models,
+        ):
+            return "ok"
+        else:
+            return "failed"
 
     return app
 
