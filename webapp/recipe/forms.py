@@ -56,11 +56,6 @@ class AddRecipeForm(FlaskForm):
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
-    description = StringField(
-        "Текст рецепта",
-        validators=[DataRequired()],
-        render_kw={"class": "form-control"},
-    )
     preparation_time = StringField(
         "Время на подготовку, мин",
         validators=[DataRequired()],

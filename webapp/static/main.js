@@ -183,7 +183,7 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
         var recipe_id = $(".add-cooking-step-button").data('recipe-id');
 
         $.post(
-            "/add_recipe_description/" + recipe_id,
+            "/recipes/add_recipe_description/" + recipe_id,
             {cooking_step_text: cooking_step_text}
             )
             .done(function(){
@@ -221,7 +221,7 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
         var recipe_id = $(".add-ingredient-button").data('recipe-id');
 
         $.post(
-            "/add_ingredient/" + recipe_id,
+            "/recipes/add_ingredient/" + recipe_id,
             {product_name: product_name,
             product_category: product_category,
             ingredient_quantity: ingredient_quantity,

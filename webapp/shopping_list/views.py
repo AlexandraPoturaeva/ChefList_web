@@ -269,7 +269,7 @@ def add_recipe_to_shopping_list(recipe_id):
 
     return redirect(
         url_for(
-            "recipe",
+            "recipe.recipe",
             recipe_id=recipe.id,
         )
     )
@@ -295,7 +295,7 @@ def choose_recipe_to_add(shopping_list_public_id):
         )
 
     return render_template(
-        "shopping_list.choose_recipe_to_add.html",
+        "shopping_list/choose_recipe_to_add.html",
         user_recipes=user_recipes,
         shopping_list_public_id=shopping_list_public_id,
     )

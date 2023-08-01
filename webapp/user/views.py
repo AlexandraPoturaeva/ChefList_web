@@ -31,13 +31,19 @@ def process_reg():
     form = RegistrationForm()
     if form.validate_on_submit():
         user_name = form.name.data
-        user_email = form.email.data.lower()
-        new_user = User(name=user_name, email=user_email)
-        new_user.set_password(form.password.data)
-        db.session.add(new_user)
-        db.session.commit()
-        flash("Вы успешно зарегистрировались", category="success")
-        return redirect(url_for("user.login"))
+        if user_name.lower() == "admin":
+            flash(
+                "Регистрация под таким именем невозможна",
+                category="danger",
+            )
+        else:
+            user_email = form.email.data.lower()
+            new_user = User(name=user_name, email=user_email)
+            new_user.set_password(form.password.data)
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Вы успешно зарегистрировались", category="success")
+            return redirect(url_for("user.login"))
 
     else:
         flash_errors_from_form(form)

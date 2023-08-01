@@ -1,13 +1,14 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from webapp.db import db
-from webapp.recipe.forms import AddIngredientForm, AddRecipeForm
+from webapp.db import db, UNITS
+from webapp.recipe.forms import AddRecipeForm
 from webapp.recipe.models import (
     Ingredient,
     PRODUCT_CATEGORIES,
     Product,
     RECIPE_CATEGORIES,
     Recipe,
+    RecipeDescription,
 )
 from webapp.shopping_list.forms import ChooseListForm
 from webapp.shopping_list.models import ShoppingList
@@ -15,7 +16,7 @@ from webapp.user.models import User
 from webapp.utils import flash_errors_from_form
 from uuid import uuid4
 
-blueprint = Blueprint("recipe", __name__, url_prefix="/recipe")
+blueprint = Blueprint("recipe", __name__, url_prefix="/recipes")
 
 
 @blueprint.route("/recipe")
@@ -23,7 +24,9 @@ def recipes():
     admin = User.query.filter(User.name == "admin").one_or_none()
     if admin:
         public_recipes = Recipe.query.filter(Recipe.user_id == admin.id).all()
-        return render_template("public_recipes.html", public_recipes=public_recipes)
+        return render_template(
+            "/recipe/public_recipes.html", public_recipes=public_recipes
+        )
     else:
         flash("Нет общедоступных рецептов!", category="danger")
         return redirect(url_for("index"))
@@ -33,7 +36,7 @@ def recipes():
 @login_required
 def my_recipes():
     user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
-    return render_template("recipe/my_recipes.html", user_recipes=user_recipes)
+    return render_template("/recipe/my_recipes.html", user_recipes=user_recipes)
 
 
 @blueprint.route("/add_recipe", methods=["POST", "GET"])
@@ -41,7 +44,7 @@ def my_recipes():
 def add_recipe():
     if request.method == "GET":
         form = AddRecipeForm()
-        return render_template("recipe/add_recipe.html", form=form)
+        return render_template("/recipe/add_recipe.html", form=form)
 
     form = AddRecipeForm()
     if form.validate_on_submit():
@@ -54,11 +57,9 @@ def add_recipe():
         )
         if recipe_name_already_used:
             flash("Рецепт с таким именем уже существует", category="danger")
-            return render_template("recipe/add_recipe.html", form=form)
+            return render_template("/recipe/add_recipe.html", form=form)
 
         category = form.category.data
-
-        description = form.description.data
         preparation_time = form.preparation_time.data
         cooking_time = form.cooking_time.data
 
@@ -66,95 +67,85 @@ def add_recipe():
             name=name,
             user_id=current_user.id,
             category=category,
-            description=description,
             preparation_time=preparation_time,
             cooking_time=cooking_time,
         )
         db.session.add(recipe)
         db.session.commit()
 
-        recipe_id = (
-            Recipe.query.filter(
-                Recipe.name == recipe.name, Recipe.user_id == recipe.user_id
-            )
-            .one()
-            .id
-        )
+        recipe = Recipe.query.filter(
+            Recipe.name == recipe.name, Recipe.user_id == recipe.user_id
+        ).one()
 
-        return redirect(
-            url_for(
-                "recipe.add_ingredient",
-                recipe_id=recipe_id,
-                RECIPE_CATEGORIES=RECIPE_CATEGORIES,
-                PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
-            )
+        return render_template(
+            "recipe/add_ingredient.html",
+            recipe=recipe,
+            PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+            RECIPE_CATEGORIES=RECIPE_CATEGORIES,
+            UNITS=UNITS,
         )
     else:
         flash_errors_from_form(form)
+
     return redirect(url_for("recipe.recipe", recipe_id=recipe_id))
 
 
-@blueprint.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
+@blueprint.route("/add_ingredient/<int:recipe_id>", methods=["POST"])
 @login_required
 def add_ingredient(recipe_id):
-    print(Recipe.query.all())
     try:
         recipe = db.session.query(Recipe).get(recipe_id)
     except:
         flash("Неверный идентификатор рецепта")
         return redirect(url_for("recipe.my_recipes"))
 
-    if request.method == "GET":
-        form = AddIngredientForm()
-        return render_template(
-            "recipe/add_ingredient.html",
-            form=form,
-            recipe=recipe,
-            PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
-            RECIPE_CATEGORIES=RECIPE_CATEGORIES,
-        )
+    product_name = request.form.get("product_name")
+    product_category = request.form.get("product_category")
+    ingredient_quantity = request.form.get("ingredient_quantity")
+    ingredient_unit = request.form.get("ingredient_unit")
 
-    form = AddIngredientForm()
-    if form.validate_on_submit():
-        unit = form.unit.data
+    if all([product_name, product_category, ingredient_quantity, ingredient_unit]):
+        product = Product.query.filter(Product.name == product_name).one_or_none()
 
-        product = Product.query.filter(Product.name == form.product.data).one_or_none()
         if not product:
-            product = Product(name=form.product.data, category=form.category.data)
+            product = Product(name=product_name, category=product_category)
             db.session.add(product)
             db.session.commit()
-            product_id = (
-                Product.query.filter(Product.name == form.product.data).one().id
-            )
-        else:
-            product_id = product.id
+            product = Product.query.filter(Product.name == product_name).one()
 
-        quantity = form.quantity.data
+        product_id = product.id
+
+        quantity = ingredient_quantity
 
         ingredient = Ingredient(
             product_id=product_id,
             quantity=quantity,
-            unit=unit,
+            unit=ingredient_unit,
             recipe_id=recipe.id,
         )
 
         db.session.add(ingredient)
         db.session.commit()
-        flash("Ингредиент добавлен", category="info")
-        return redirect(
-            url_for(
-                "recipe.add_ingredient",
-                recipe_id=recipe.id,
-            )
-        )
+        return "ok"
+
     else:
-        flash_errors_from_form(form)
-    return redirect(
-        url_for(
-            "recipe.add_ingredient",
-            recipe_id=recipe.id,
+        return "failed"
+
+
+@blueprint.route("/add_recipe_description/<int:recipe_id>", methods=["POST"])
+def add_recipe_description(recipe_id):
+    cooking_step_text = request.form.get("cooking_step_text")
+
+    if cooking_step_text:
+        cooking_step_obj = RecipeDescription(
+            recipe_id=recipe_id, text=cooking_step_text
         )
-    )
+        db.session.add(cooking_step_obj)
+        db.session.commit()
+        return "ok"
+
+    else:
+        return "failed"
 
 
 @blueprint.route("/recipe/<int:recipe_id>")
@@ -198,7 +189,7 @@ def recipe(recipe_id):
     form.name.choices = shopping_lists_names
 
     return render_template(
-        "recipe/recipe.html",
+        "/recipe/recipe.html",
         PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
         RECIPE_CATEGORIES=RECIPE_CATEGORIES,
         recipe=recipe,

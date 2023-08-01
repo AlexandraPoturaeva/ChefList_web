@@ -15,3 +15,9 @@ UNITS = [
     "зубчик",
     "веточка",
 ]
+
+
+class ProjectSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False)
+    value = db.Column(db.Text, nullable=False)
