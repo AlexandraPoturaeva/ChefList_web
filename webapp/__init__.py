@@ -240,14 +240,12 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 return render_template("add_recipe.html", form=form)
 
             category = form.category.data
-            preparation_time = form.preparation_time.data
             cooking_time = form.cooking_time.data
 
             recipe = Recipe(
                 name=name,
                 user_id=current_user.id,
                 category=category,
-                preparation_time=preparation_time,
                 cooking_time=cooking_time,
             )
             db.session.add(recipe)
