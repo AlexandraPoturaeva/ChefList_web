@@ -63,6 +63,9 @@ class User(db.Model, UserMixin):
     name = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     shopping_lists = db.relationship("ShoppingList", backref="user", lazy=True)
+    recipes = db.relationship(
+        "Recipe", backref="user", lazy=True, cascade="all, delete"
+    )
 
     def __init__(self, email, name):
         self.email = email
