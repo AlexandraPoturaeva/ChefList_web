@@ -12,17 +12,17 @@ from flask_login import (
     logout_user,
 )
 from flask_migrate import Migrate
+from populate_db import populate_db
 from sqlalchemy import func
 from webapp.forms import (
-    AddIngredientForm,
     AddRecipeForm,
     AddShoppingItem,
+    ChooseListForm,
     CreateListForm,
     EditQuantityOfShoppingItemForm,
     LoginForm,
     RegistrationForm,
     RenameElement,
-    ChooseListForm,
 )
 from webapp.model import (
     db,
@@ -30,7 +30,9 @@ from webapp.model import (
     Ingredient,
     Product,
     UNITS,
+    ProjectSettings,
     Recipe,
+    RecipeDescription,
     ShoppingList,
     ShoppingItem,
     RECIPE_CATEGORIES,
@@ -40,6 +42,8 @@ from uuid import uuid4
 
 database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
+admin_email = os.environ.get("ADMIN_EMAIL")
+admin_password = os.environ.get("ADMIN_PASSWORD")
 
 
 def flash_errors_from_form(form):
@@ -138,16 +142,22 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         form = RegistrationForm()
         if form.validate_on_submit():
             user_name = form.name.data
-            user_email = form.email.data.lower()
-            new_user = User(name=user_name, email=user_email)
-            new_user.set_password(form.password.data)
-            db.session.add(new_user)
-            db.session.commit()
-            flash("Вы успешно зарегистрировались", category="success")
-            return redirect(url_for("login"))
 
-        else:
-            flash_errors_from_form(form)
+            if user_name.lower() == "admin":
+                flash(
+                    "Регистрация под таким именем невозможна",
+                    category="danger",
+                )
+            else:
+                user_email = form.email.data.lower()
+                new_user = User(name=user_name, email=user_email)
+                new_user.set_password(form.password.data)
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Вы успешно зарегистрировались", category="success")
+                return redirect(url_for("login"))
+
+        flash_errors_from_form(form)
         return redirect(url_for("registration"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -195,19 +205,18 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
     @app.route("/recipes")
     def recipes():
+        public_recipes = None
+
         admin = User.query.filter(User.name == "admin").one_or_none()
         if admin:
-            public_recipes = Recipe.query.filter(Recipe.user_id == admin.id).all()
-            return render_template("public_recipes.html", public_recipes=public_recipes)
-        else:
-            flash("Нет общедоступных рецептов!", category="danger")
-            return redirect(url_for("index"))
+            public_recipes = admin.recipes
+
+        return render_template("public_recipes.html", public_recipes=public_recipes)
 
     @app.route("/my_recipes")
     @login_required
     def my_recipes():
-        user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
-        return render_template("my_recipes.html", user_recipes=user_recipes)
+        return render_template("my_recipes.html", user_recipes=current_user.recipes)
 
     @app.route("/add_recipe", methods=["POST", "GET"])
     @login_required
@@ -230,17 +239,12 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 return render_template("add_recipe.html", form=form)
 
             category = form.category.data
-
-            description = form.description.data
-            preparation_time = form.preparation_time.data
             cooking_time = form.cooking_time.data
 
             recipe = Recipe(
                 name=name,
                 user_id=current_user.id,
                 category=category,
-                description=description,
-                preparation_time=preparation_time,
                 cooking_time=cooking_time,
             )
             db.session.add(recipe)
@@ -254,109 +258,93 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 .id
             )
 
-            return redirect(
-                url_for(
-                    "add_ingredient",
-                    recipe_id=recipe_id,
-                    RECIPE_CATEGORIES=RECIPE_CATEGORIES,
-                    PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
-                )
+            return render_template(
+                "add_ingredient.html",
+                recipe_id=recipe_id,
+                PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
+                UNITS=UNITS,
             )
         else:
             flash_errors_from_form(form)
         return redirect(url_for("recipes", recipe_id=recipe_id))
 
-    @app.route("/add_ingredient/<int:recipe_id>", methods=["POST", "GET"])
+    @app.route("/add_ingredient/<int:recipe_id>", methods=["POST"])
     @login_required
     def add_ingredient(recipe_id):
-        print(Recipe.query.all())
-        try:
-            recipe = db.session.query(Recipe).get(recipe_id)
-        except:
-            flash("Неверный идентификатор рецепта")
+        recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        if not recipe:
+            flash("При добавлении ингредиента произошла ошибка")
             return redirect(url_for("my_recipes"))
 
-        if request.method == "GET":
-            form = AddIngredientForm()
-            return render_template(
-                "add_ingredient.html",
-                form=form,
-                recipe=recipe,
-                PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
-                RECIPE_CATEGORIES=RECIPE_CATEGORIES,
-            )
+        product_name = request.form.get("product_name")
+        product_category = request.form.get("product_category")
+        ingredient_quantity = request.form.get("ingredient_quantity")
+        ingredient_unit = request.form.get("ingredient_unit")
 
-        form = AddIngredientForm()
-        if form.validate_on_submit():
-            unit = form.unit.data
+        if all([product_name, product_category, ingredient_quantity, ingredient_unit]):
+            product = Product.query.filter(Product.name == product_name).one_or_none()
 
-            product = Product.query.filter(
-                Product.name == form.product.data
-            ).one_or_none()
             if not product:
-                product = Product(name=form.product.data, category=form.category.data)
+                product = Product(name=product_name, category=product_category)
                 db.session.add(product)
                 db.session.commit()
-                product_id = (
-                    Product.query.filter(Product.name == form.product.data).one().id
-                )
+                product_id = Product.query.filter(Product.name == product_name).one().id
             else:
                 product_id = product.id
 
-            quantity = form.quantity.data
+            quantity = ingredient_quantity
 
             ingredient = Ingredient(
                 product_id=product_id,
                 quantity=quantity,
-                unit=unit,
+                unit=ingredient_unit,
                 recipe_id=recipe.id,
             )
 
             db.session.add(ingredient)
             db.session.commit()
-            flash("Ингредиент добавлен", category="info")
-            return redirect(
-                url_for(
-                    "add_ingredient",
-                    recipe_id=recipe.id,
-                )
-            )
+            return "ok"
         else:
-            flash_errors_from_form(form)
-        return redirect(
-            url_for(
-                "add_ingredient",
-                recipe_id=recipe.id,
+            return "failed"
+
+    @app.route("/add_recipe_description/<int:recipe_id>", methods=["POST"])
+    def add_recipe_description(recipe_id):
+        cooking_step_text = request.form.get("cooking_step_text")
+
+        if cooking_step_text:
+            cooking_step_obj = RecipeDescription(
+                recipe_id=recipe_id, text=cooking_step_text
             )
-        )
+            db.session.add(cooking_step_obj)
+            db.session.commit()
+            return "ok"
+
+        else:
+            return "failed"
 
     @app.route("/recipes/<int:recipe_id>")
     def recipe(recipe_id):
-        try:
-            recipe = db.session.query(Recipe).get(recipe_id)
-        except:
+        recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        if not recipe:
             return redirect(url_for("recipes"))
 
         admin = User.query.filter(User.name == "admin").one_or_none()
 
+        admin_id = None
         if admin:
             admin_id = admin.id
-        else:
-            admin_id = None
 
-        if current_user.is_anonymous:
-            if recipe.user_id != admin_id:
-                flash("Рецепт доступен только авторизированным пользователям!")
-                return redirect(url_for("recipes"))
-        else:
-            if recipe.user_id != admin_id and recipe.user_id != current_user.id:
-                flash("У Вас нет прав на доступ к этому рецепту!")
-                return redirect(url_for("recipes"))
+        current_user_id = None
+        if current_user.is_authenticated:
+            current_user_id = current_user.id
+
+        if recipe.user_id != admin_id and recipe.user_id != current_user_id:
+            flash("Этот рецепт Вам недоступен")
+            return redirect(url_for("recipes"))
+
         form = ChooseListForm()
-        shopping_lists_count = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).count()
-        if shopping_lists_count == 0:
+
+        if current_user_id and not current_user.shopping_lists:
             new_shopping_list = ShoppingList(
                 name="Мой список покупок",
                 user_id=current_user.id,
@@ -364,11 +352,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             )
             db.session.add(new_shopping_list)
             db.session.commit()
-        shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).all()
-        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
-        form.name.choices = shopping_lists_names
+            form.name.choices = [
+                shopping_list.name for shopping_list in current_user.shopping_lists
+            ]
 
         return render_template(
             "recipe.html",
@@ -381,13 +367,11 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/delete_recipe/<int:recipe_id>")
     @login_required
     def delete_recipe(recipe_id):
-        try:
-            recipe_to_delete = Recipe.query.get(recipe_id)
+        recipe_to_delete = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        if recipe_to_delete:
             db.session.delete(recipe_to_delete)
             db.session.commit()
             flash("Рецепт удалён.", category="success")
-        except:
-            flash("При удалении рецепта возникла ошибка.", category="danger")
 
         return redirect(url_for("my_recipes"))
 
@@ -648,12 +632,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/add_recipe_to_shopping_list/<int:recipe_id>", methods=["POST"])
     def add_recipe_to_shopping_list(recipe_id):
         form = ChooseListForm()
-
-        shopping_lists = ShoppingList.query.filter(
-            ShoppingList.user_id == current_user.id
-        ).all()
-        shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
-        form.name.choices = shopping_lists_names
+        form.name.choices = [
+            shopping_list.name for shopping_list in current_user.shopping_lists
+        ]
         if form.validate_on_submit():
             chosen_shopping_list = ShoppingList.query.filter(
                 ShoppingList.name == form.name.data,
@@ -678,6 +659,55 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 recipe_id=recipe.id,
             )
         )
+
+    @app.route(
+        "/choose_recipe_to_add/<shopping_list_public_id>", methods=["GET", "POST"]
+    )
+    def choose_recipe_to_add(shopping_list_public_id):
+        recipe_id = request.form.get("recipe_id")
+        portions = request.form.get("portions")
+
+        if recipe_id and portions:
+            portions = int(portions)
+            chosen_shopping_list = ShoppingList.query.filter(
+                ShoppingList.public_id == shopping_list_public_id
+            ).one()
+            recipe = Recipe.query.get(recipe_id)
+            update_recipe_to_shopping_list(
+                shopping_list=chosen_shopping_list, recipe=recipe, portions=portions
+            )
+
+        return render_template(
+            "choose_recipe_to_add.html",
+            user_recipes=current_user.recipes,
+            shopping_list_public_id=shopping_list_public_id,
+        )
+
+    @app.route("/populate_db")
+    def populate_db_view(admin_email=admin_email, admin_password=admin_password):
+        models = {
+            "Ingredient": Ingredient,
+            "Product": Product,
+            "ProjectSettings": ProjectSettings,
+            "User": User,
+            "Recipe": Recipe,
+            "RecipeDescription": RecipeDescription,
+        }
+
+        if not admin_email and not admin_password:
+            admin_email = app.config["ADMIN_EMAIL"]
+            admin_password = app.config["ADMIN_PASSWORD"]
+
+        if populate_db(
+            app=app,
+            admin_email=admin_email,
+            admin_password=admin_password,
+            db=db,
+            models=models,
+        ):
+            return "ok"
+        else:
+            return "failed"
 
     return app
 

@@ -2,6 +2,11 @@
 <div class="col-lg-8 mx-auto p-4 py-md-5">
   <h1 class="text-center">Рецепты</h1>
   <div class="p-3"></div>
+  {% if not public_recipes %}
+  <div class="alert alert-primary text-center" role="alert">
+    Рецептов пока нет
+  </div>
+  {% else %}
   <table id="public_recipes" class="table table-striped fs-4">
     <thead>
       <tr>
@@ -51,6 +56,7 @@
       {%endfor%}
     </tbody>
   </table>
+  {% endif %}
 </div>
 
 {% endblock %}
