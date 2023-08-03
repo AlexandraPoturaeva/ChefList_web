@@ -3,18 +3,22 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-db = SQLAlchemy()
+db = SQLAlchemy(engine_options={"pool_pre_ping": True})
 
 PRODUCT_CATEGORIES = {
     "Хлебобулочные изделия": "burlywood",
-    "Кондитерские товары": "goldenrod",
-    "Молочная продукция": "seashell",
-    "Мясные товары": "brown",
-    "Колбасная продукция": "salmon",
+    "Кондитерские изделия": "goldenrod",
+    "Молоко, сыр, яйца": "seashell",
+    "Мясо, птица": "brown",
+    "Сосиски, колбасы, деликатесы": "salmon",
     "Рыба и морепродукты": "steelblue",
-    "Овощи-фрукты": "limegreen",
-    "Бакалея": "hotpink",
+    "Овощи и фрукты": "limegreen",
+    "Бакалея, соусы": "hotpink",
     "Напитки": "magenta",
+    "Чай, кофе, какао": "rosybrown",
+    "Чипсы, орехи, сухарики": "tomato",
+    "Замороженные продукты": "lightskyblue",
+    "Консервы, мёд, варенье": "gray",
 }
 
 RECIPE_CATEGORIES = {
@@ -33,16 +37,22 @@ RECIPE_CATEGORIES = {
 UNITS = [
     "г",
     "мл",
-    "шт",
+    "шт.",
     "л",
     "кг",
-    "столовая ложка",
-    "чайная ложка",
+    "ст. ложка",
+    "ч. ложка",
     "стакан",
     "по вкусу",
     "зубчик",
     "веточка",
 ]
+
+
+class ProjectSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False)
+    value = db.Column(db.Text, nullable=False)
 
 
 class User(db.Model, UserMixin):
@@ -53,6 +63,13 @@ class User(db.Model, UserMixin):
     name = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     shopping_lists = db.relationship("ShoppingList", backref="user", lazy=True)
+    recipes = db.relationship(
+        "Recipe", backref="user", lazy=True, cascade="all, delete"
+    )
+
+    def __init__(self, email, name):
+        self.email = email
+        self.name = name
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -83,8 +100,9 @@ class Recipe(db.Model):
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     category = db.Column(db.Text)
-    description = db.Column(db.Text)
-    preparation_time = db.Column(db.Text)
+    description = db.relationship(
+        "RecipeDescription", backref="recipe", lazy=True, cascade="all, delete"
+    )
     cooking_time = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     ingredients = db.relationship(
@@ -93,6 +111,12 @@ class Recipe(db.Model):
 
     def __repr__(self):
         return f"<Recipe: {self.name} by user with id {self.user_id}>"
+
+
+class RecipeDescription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipe.id"))
 
 
 class Ingredient(db.Model):
@@ -127,6 +151,7 @@ class ShoppingItem(db.Model):
     __tablename__ = "shopping_item"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
+    category = db.Column(db.Text)
     shopping_list_id = db.Column(
         db.Integer, db.ForeignKey("shopping_list.id"), nullable=False
     )

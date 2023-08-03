@@ -116,14 +116,14 @@ If these texts are equal to each other, function:
  3. prevents submitting of the form
  4. stops iteration
 */
-/*
+
     $(".add-item-form").submit(function(e) {
         var new_item_name = $("#new_item_name").val();
 
         $('label.item-name').each(function() {
             var item_name = $(this).text().trim();
 
-            if (item_name == new_item_name) {
+            if (item_name.toLowerCase() == new_item_name.toLowerCase()) {
 
                 let li = $(this).parents('li.shopping-list-item')
                 li.addClass('list-group-item-danger');
@@ -139,9 +139,119 @@ If these texts are equal to each other, function:
             }
         });
     });
-    */
-});
 
+/*
+The code below is an event handler to the "click" event
+on the button containing "add-ingredients-from-recipe" in it's class.
+
+What it is doing:
+1. getting data from the button (recipe_id and shopping_list_public_id)
+   and value from the input with id "#select_portions_" + recipe_id.
+2. selecting elements (button and it's svg path)
+3. sending data to the url "/choose_recipe_to_add/" + shopping_list_public_id using a HTTP POST request
+4. if it's done - change colour of the button to red and replace it's svg.
+If it's failed - puts message 'Что-то пошло не так...' into the padding with '.space-for-messages'
+*/
+
+    $(document).on("click", ".add-ingredients-from-recipe", function () {
+         var recipe_id = $(this).data('recipe-id');
+         var shopping_list_public_id = $(this).data('shopping-list-public-id');
+         var portions = $("#select_portions_" + recipe_id).val();
+
+         let add_button = $(this)
+         let button_svg_path = $(this).children('svg').children('path.svg-path');
+
+         $.post(
+            "/choose_recipe_to_add/" + shopping_list_public_id,
+            {recipe_id: recipe_id, portions: portions})
+            .done(function(){
+                add_button.removeClass("btn-danger").addClass("btn-success")
+                button_svg_path.attr("d", "M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z");
+            })
+            .fail(function(){
+                $('.space-for-messages').text('Что-то пошло не так...').css("color", "red");
+            });
+
+            setTimeout(function() {
+                    $('.space-for-messages').empty();
+                    }, 4000);
+    });
+
+    $(".add-cooking-step-form").submit(function(e) {
+        e.preventDefault();
+        var cooking_step_text = $(".new-cooking-step-text").val();
+        var recipe_id = $(".add-cooking-step-button").data('recipe-id');
+
+        $.post(
+            "/add_recipe_description/" + recipe_id,
+            {cooking_step_text: cooking_step_text}
+            )
+            .done(function(){
+                let step = $('.new-cooking-step-input-group');
+                let new_step = step.clone();
+                new_step.insertAfter(step);
+
+                step
+                .removeClass('new-cooking-step-input-group')
+                .find('.new-cooking-step-text')
+                .removeClass('new-cooking-step-text')
+                .attr("disabled", true);
+
+                new_step.children('.new-cooking-step-text').val('');
+                let cnt = parseInt(new_step.children('.cooking-step-num').html());
+                new_step.children('.cooking-step-num').html(cnt+1);
+
+            })
+            .fail(function(){
+                $('.space-for-messages').text('Что-то пошло не так...').css("color", "red");
+            });
+
+            setTimeout(function() {
+                    $('.space-for-messages').empty();
+                    }, 4000);
+
+        });
+
+    $(".add-ingredient-form").submit(function(e) {
+        e.preventDefault();
+        var product_name = $(".new-ingredient-data").find('.product-name').val();
+        var product_category = $(".new-ingredient-data").find('.product-category').val();
+        var ingredient_quantity = $(".new-ingredient-data").find('.ingredient-quantity').val();
+        var ingredient_unit = $(".new-ingredient-data").find('.ingredient-unit').val();
+        var recipe_id = $(".add-ingredient-button").data('recipe-id');
+
+        $.post(
+            "/add_ingredient/" + recipe_id,
+            {product_name: product_name,
+            product_category: product_category,
+            ingredient_quantity: ingredient_quantity,
+            ingredient_unit: ingredient_unit}
+            )
+            .done(function(){
+
+                let ingredient =  $('.new-ingredient-data');
+
+                let new_ingredient = ingredient.clone();
+                new_ingredient.insertAfter(ingredient);
+
+                new_ingredient.find('.product-name').val('');
+                new_ingredient.find('.ingredient-quantity').val('1');
+
+                ingredient
+                .removeClass('new-ingredient-data')
+                .find('input,select')
+                .prop({disabled: true});
+            })
+            .fail(function(){
+                $('.space-for-messages').text('Что-то пошло не так...').css("color", "red");
+            });
+
+            setTimeout(function() {
+                    $('.space-for-messages').empty();
+                    }, 4000);
+
+        });
+});
 
 /*
 The function below is called from a template.
