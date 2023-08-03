@@ -13,6 +13,23 @@
     </div>
 </div>
 <div class="p-2"></div>
+{% if user_recipes|length == 0 %}
+    <div class="row">
+        <div class="p-4"></div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4 text-center">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">У Вас пока нет своих рецептов</h5>
+                <div class="p-1"></div>
+                <a href="{{ url_for('add_recipe') }}" class="btn btn-primary">Добавить свой рецепт</a>
+                <a href="{{ url_for('recipes') }}" class="btn btn-primary">Подобрать рецепт на сайте</a>
+              </div>
+            </div>
+        </div>
+        <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+    </div>
+{% endif %}
 <div class="row row-cols-1 row-cols-md-3 g-4">
     {% for recipe in user_recipes %}
     <div class="col">
