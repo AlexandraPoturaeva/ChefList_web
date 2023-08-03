@@ -205,13 +205,13 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
     @app.route("/recipes")
     def recipes():
+        public_recipes = None
+
         admin = User.query.filter(User.name == "admin").one_or_none()
         if admin:
-            public_recipes = Recipe.query.filter(Recipe.user_id == admin.id).all()
-            return render_template("public_recipes.html", public_recipes=public_recipes)
-        else:
-            flash("Нет общедоступных рецептов!", category="danger")
-            return redirect(url_for("index"))
+            public_recipes = admin.recipes
+
+        return render_template("public_recipes.html", public_recipes=public_recipes)
 
     @app.route("/my_recipes")
     @login_required
@@ -345,7 +345,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                 return redirect(url_for("recipes"))
         form = ChooseListForm()
 
-        if len(current_user.shopping_lists) == 0:
+        if not current_user.shopping_lists:
             new_shopping_list = ShoppingList(
                 name="Мой список покупок",
                 user_id=current_user.id,
