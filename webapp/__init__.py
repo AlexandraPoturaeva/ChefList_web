@@ -38,6 +38,7 @@ from webapp.model import (
     RECIPE_CATEGORIES,
     PRODUCT_CATEGORIES,
 )
+from webapp.utils import get_admin_id
 from uuid import uuid4
 
 database_uri = os.environ.get("DATABASE_URL")
@@ -205,12 +206,8 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
     @app.route("/recipes")
     def recipes():
-        public_recipes = None
-
-        admin = User.query.filter(User.name == "admin").one_or_none()
-        if admin:
-            public_recipes = admin.recipes
-
+        admin_id = get_admin_id()
+        public_recipes = Recipe.query.filter(Recipe.user_id == admin_id).all()
         return render_template("public_recipes.html", public_recipes=public_recipes)
 
     @app.route("/my_recipes")
@@ -329,11 +326,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         if not recipe:
             return redirect(url_for("recipes"))
 
-        admin = User.query.filter(User.name == "admin").one_or_none()
-
-        admin_id = None
-        if admin:
-            admin_id = admin.id
+        admin_id = get_admin_id()
 
         current_user_id = None
         if current_user.is_authenticated:
@@ -368,7 +361,11 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/delete_recipe/<int:recipe_id>")
     @login_required
     def delete_recipe(recipe_id):
-        recipe_to_delete = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+        admin_id = get_admin_id()
+
+        recipe_to_delete = Recipe.query.filter(
+            Recipe.id == recipe_id, Recipe.user_id == admin_id
+        ).one_or_none()
         if recipe_to_delete:
             db.session.delete(recipe_to_delete)
             db.session.commit()
@@ -376,37 +373,44 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
         return redirect(url_for("my_recipes"))
 
-    @app.route("/add_to_my_recipes/<int:recipe_id>")
+    @app.route("/copy_to_my_recipes/<int:recipe_id>")
     @login_required
-    def add_to_my_recipes(recipe_id):
+    def copy_to_my_recipes(recipe_id):
         recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
 
-        if object_does_not_exist(Recipe, recipe.name):
-            my_recipe = Recipe(
-                name=recipe.name,
-                user_id=current_user.id,
-                category=recipe.category,
-                description=recipe.description,
-                cooking_time=recipe.cooking_time,
-            )
-            db.session.add(my_recipe)
-            db.session.commit()
-            my_recipe = Recipe.query.filter(
-                Recipe.name == recipe.name, Recipe.user_id == current_user.id
-            ).one()
-
-            for ingredient in recipe.ingredients:
-                my_ingredient = Ingredient(
-                    product_id=ingredient.product_id,
-                    quantity=ingredient.quantity,
-                    unit=ingredient.unit,
-                    recipe_id=my_recipe.id,
+        if recipe:
+            if object_does_not_exist(Recipe, recipe.name):
+                recipe_obj = Recipe(
+                    name=recipe.name,
+                    user_id=current_user.id,
+                    category=recipe.category,
+                    cooking_time=recipe.cooking_time,
                 )
-                db.session.add(my_ingredient)
-            db.session.commit()
+                db.session.add(recipe_obj)
+                recipe_copy = Recipe.query.filter(
+                    Recipe.name == recipe.name, Recipe.user_id == current_user.id
+                ).one()
 
-            flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
-            return redirect(url_for("recipe", recipe_id=my_recipe.id))
+                for ingredient in recipe.ingredients:
+                    ingredient_copy = Ingredient(
+                        product_id=ingredient.product_id,
+                        quantity=ingredient.quantity,
+                        unit=ingredient.unit,
+                        recipe_id=recipe_copy.id,
+                    )
+                    db.session.add(ingredient_copy)
+
+                for step in recipe.description:
+                    step_copy = RecipeDescription(
+                        recipe_id=recipe_copy.id, text=step.text
+                    )
+                    db.session.add(step_copy)
+                db.session.commit()
+
+                flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
+                return redirect(url_for("recipe", recipe_id=recipe_copy.id))
+        else:
+            flash("Что-то пошло не так")
 
         return redirect(url_for("recipes"))
 
@@ -500,7 +504,6 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
                     flash(
                         "При переименовании списка возникла ошибка", category="danger"
                     )
-
         else:
             flash_errors_from_form(form)
 
