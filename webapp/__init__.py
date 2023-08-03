@@ -379,44 +379,36 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     @app.route("/add_to_my_recipes/<int:recipe_id>")
     @login_required
     def add_to_my_recipes(recipe_id):
-        recipe = Recipe.query.get(recipe_id)
+        recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
 
-        recipe_owner_name = User.query.get(recipe.user_id).name
-        new_name = f"{recipe.name} by {recipe_owner_name}"
+        if object_does_not_exist(Recipe, recipe.name):
+            my_recipe = Recipe(
+                name=recipe.name,
+                user_id=current_user.id,
+                category=recipe.category,
+                description=recipe.description,
+                cooking_time=recipe.cooking_time,
+            )
+            db.session.add(my_recipe)
+            db.session.commit()
+            my_recipe = Recipe.query.filter(
+                Recipe.name == recipe.name, Recipe.user_id == current_user.id
+            ).one()
 
-        exist_chef_recipe = Recipe.query.filter(
-            Recipe.name == new_name, Recipe.user_id == current_user.id
-        ).one_or_none()
-        if exist_chef_recipe:
-            db.session.delete(exist_chef_recipe)
+            for ingredient in recipe.ingredients:
+                my_ingredient = Ingredient(
+                    product_id=ingredient.product_id,
+                    quantity=ingredient.quantity,
+                    unit=ingredient.unit,
+                    recipe_id=my_recipe.id,
+                )
+                db.session.add(my_ingredient)
             db.session.commit()
 
-        my_recipe = Recipe(
-            name=new_name,
-            user_id=current_user.id,
-            category=recipe.category,
-            description=recipe.description,
-            preparation_time=recipe.preparation_time,
-            cooking_time=recipe.cooking_time,
-        )
-        db.session.add(my_recipe)
-        db.session.commit()
-        my_recipe = Recipe.query.filter(
-            Recipe.name == new_name, Recipe.user_id == current_user.id
-        ).one()
+            flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
+            return redirect(url_for("recipe", recipe_id=my_recipe.id))
 
-        for ingredient in recipe.ingredients:
-            my_ingredient = Ingredient(
-                product_id=ingredient.product_id,
-                quantity=ingredient.quantity,
-                unit=ingredient.unit,
-                recipe_id=my_recipe.id,
-            )
-            db.session.add(my_ingredient)
-        db.session.commit()
-
-        flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
-        return redirect(url_for("recipes", recipe_id=recipe_id))
+        return redirect(url_for("recipes"))
 
     @app.route("/my-lists")
     @login_required
@@ -437,14 +429,14 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             page_title=title,
         )
 
-    def shopping_list_does_not_exist(name):
-        shopping_list_already_exists = ShoppingList.query.filter(
-            func.lower(ShoppingList.name) == func.lower(name),
-            ShoppingList.user_id == current_user.id,
+    def object_does_not_exist(model, name):
+        object_already_exists = model.query.filter(
+            func.lower(model.name) == func.lower(name),
+            model.user_id == current_user.id,
         ).one_or_none()
 
-        if shopping_list_already_exists:
-            flash("Список покупок с таким именем уже существует", category="danger")
+        if object_already_exists:
+            flash("У Вас уже есть запись с таким именем", category="danger")
             return False
 
         return True
@@ -458,7 +450,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         if form.validate_on_submit():
             new_shopping_list_name = form.name.data.lower()
 
-            if shopping_list_does_not_exist(new_shopping_list_name):
+            if object_does_not_exist(ShoppingList, new_shopping_list_name):
                 new_shopping_list = ShoppingList(
                     name=new_shopping_list_name, user_id=user.id, public_id=public_id
                 )
@@ -494,7 +486,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
         if form.validate_on_submit():
             new_name = form.new_value.data.lower()
 
-            if shopping_list_does_not_exist(new_name):
+            if object_does_not_exist(ShoppingList, new_name):
                 shopping_list_id = form.element_id.data
                 shopping_list_to_rename = ShoppingList.query.filter(
                     ShoppingList.id == shopping_list_id
