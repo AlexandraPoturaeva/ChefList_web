@@ -12,41 +12,33 @@ from webapp.recipe.models import (
 )
 from webapp.shopping_list.forms import ChooseListForm
 from webapp.shopping_list.models import ShoppingList
-from webapp.user.models import User
-from webapp.utils import flash_errors_from_form
+from webapp.utils import flash_errors_from_form, get_admin_id, object_does_not_exist
 from uuid import uuid4
 
 blueprint = Blueprint("recipe", __name__, url_prefix="/recipes")
 
 
-@blueprint.route("/recipe")
-def recipes():
-    admin = User.query.filter(User.name == "admin").one_or_none()
-    if admin:
-        public_recipes = Recipe.query.filter(Recipe.user_id == admin.id).all()
-        return render_template(
-            "/recipe/public_recipes.html", public_recipes=public_recipes
-        )
-    else:
-        flash("Нет общедоступных рецептов!", category="danger")
-        return redirect(url_for("index"))
+@blueprint.route("/public")
+def public_recipes():
+    admin_id = get_admin_id()
+    public_recipes = Recipe.query.filter(Recipe.user_id == admin_id).all()
+    return render_template("recipe/public_recipes.html", public_recipes=public_recipes)
 
 
 @blueprint.route("/my_recipes")
 @login_required
 def my_recipes():
     user_recipes = Recipe.query.filter(Recipe.user_id == current_user.id).all()
-    return render_template("/recipe/my_recipes.html", user_recipes=user_recipes)
+    return render_template("recipe/my_recipes.html", user_recipes=user_recipes)
 
 
 @blueprint.route("/add_recipe", methods=["POST", "GET"])
 @login_required
 def add_recipe():
-    if request.method == "GET":
-        form = AddRecipeForm()
-        return render_template("/recipe/add_recipe.html", form=form)
-
     form = AddRecipeForm()
+    if request.method == "GET":
+        return render_template("recipe/add_recipe.html", form=form)
+
     if form.validate_on_submit():
         name = form.name.data
 
@@ -60,14 +52,12 @@ def add_recipe():
             return render_template("/recipe/add_recipe.html", form=form)
 
         category = form.category.data
-        preparation_time = form.preparation_time.data
         cooking_time = form.cooking_time.data
 
         recipe = Recipe(
             name=name,
             user_id=current_user.id,
             category=category,
-            preparation_time=preparation_time,
             cooking_time=cooking_time,
         )
         db.session.add(recipe)
@@ -78,7 +68,7 @@ def add_recipe():
         ).one()
 
         return render_template(
-            "recipe/add_ingredient.html",
+            "recipe/add_ingredients&cooking_steps.html",
             recipe=recipe,
             PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
             RECIPE_CATEGORIES=RECIPE_CATEGORIES,
@@ -87,16 +77,15 @@ def add_recipe():
     else:
         flash_errors_from_form(form)
 
-    return redirect(url_for("recipe.recipe", recipe_id=recipe_id))
+    return redirect(url_for("recipe.my_recipes"))
 
 
 @blueprint.route("/add_ingredient/<int:recipe_id>", methods=["POST"])
 @login_required
 def add_ingredient(recipe_id):
-    try:
-        recipe = db.session.query(Recipe).get(recipe_id)
-    except:
-        flash("Неверный идентификатор рецепта")
+    recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+    if not recipe:
+        flash("При добавлении ингредиента произошла ошибка")
         return redirect(url_for("recipe.my_recipes"))
 
     product_name = request.form.get("product_name")
@@ -148,45 +137,36 @@ def add_recipe_description(recipe_id):
         return "failed"
 
 
-@blueprint.route("/recipe/<int:recipe_id>")
+@blueprint.route("/<int:recipe_id>")
 def recipe(recipe_id):
-    try:
-        recipe = db.session.query(Recipe).get(recipe_id)
-    except:
-        return redirect(url_for("recipe.recipe"))
-
-    admin = User.query.filter(User.name == "admin").one_or_none()
-
-    if admin:
-        admin_id = admin.id
-    else:
-        admin_id = None
-
-    if current_user.is_anonymous:
-        if recipe.user_id != admin_id:
-            flash("Рецепт доступен только авторизированным пользователям!")
-            return redirect(url_for("recipe.recipe"))
-    else:
-        if recipe.user_id != admin_id and recipe.user_id != current_user.id:
-            flash("У Вас нет прав на доступ к этому рецепту!")
-            return redirect(url_for("recipe.recipe"))
     form = ChooseListForm()
-    shopping_lists_count = ShoppingList.query.filter(
-        ShoppingList.user_id == current_user.id
-    ).count()
-    if shopping_lists_count == 0:
-        new_shopping_list = ShoppingList(
-            name="Мой список покупок",
-            user_id=current_user.id,
-            public_id=str(uuid4()),
-        )
-        db.session.add(new_shopping_list)
-        db.session.commit()
-    shopping_lists = ShoppingList.query.filter(
-        ShoppingList.user_id == current_user.id
-    ).all()
-    shopping_lists_names = [shopping_list.name for shopping_list in shopping_lists]
-    form.name.choices = shopping_lists_names
+    recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+
+    if not recipe:
+        return redirect(url_for("recipe.public_recipes"))
+
+    admin_id = get_admin_id()
+
+    current_user_id = None
+    if current_user.is_authenticated:
+        current_user_id = current_user.id
+
+    if recipe.user_id != admin_id and recipe.user_id != current_user_id:
+        flash("Этот рецепт Вам недоступен")
+        return redirect(url_for("recipe.public_recipes"))
+
+    elif current_user.is_authenticated:
+        if not current_user.shopping_lists:
+            new_shopping_list = ShoppingList(
+                name="Мой список покупок",
+                user_id=current_user.id,
+                public_id=str(uuid4()),
+            )
+            db.session.add(new_shopping_list)
+            db.session.commit()
+        form.name.choices = [
+            shopping_list.name for shopping_list in current_user.shopping_lists
+        ]
 
     return render_template(
         "/recipe/recipe.html",
@@ -200,12 +180,54 @@ def recipe(recipe_id):
 @blueprint.route("/delete_recipe/<int:recipe_id>")
 @login_required
 def delete_recipe(recipe_id):
-    try:
-        recipe_to_delete = Recipe.query.get(recipe_id)
+    recipe_to_delete = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
+
+    if recipe_to_delete:
         db.session.delete(recipe_to_delete)
         db.session.commit()
         flash("Рецепт удалён.", category="success")
-    except:
-        flash("При удалении рецепта возникла ошибка.", category="danger")
 
     return redirect(url_for("recipe.my_recipes"))
+
+
+@blueprint.route("/copy_to_my_recipes/<int:recipe_id>")
+@login_required
+def copy_to_my_recipes(recipe_id):
+    admin_id = get_admin_id()
+    recipe = Recipe.query.filter(
+        Recipe.id == recipe_id, Recipe.user_id == admin_id
+    ).one_or_none()
+
+    if recipe:
+        if object_does_not_exist(Recipe, recipe.name):
+            recipe_obj = Recipe(
+                name=recipe.name,
+                user_id=current_user.id,
+                category=recipe.category,
+                cooking_time=recipe.cooking_time,
+            )
+            db.session.add(recipe_obj)
+            recipe_copy = Recipe.query.filter(
+                Recipe.name == recipe.name, Recipe.user_id == current_user.id
+            ).one()
+
+            for ingredient in recipe.ingredients:
+                ingredient_copy = Ingredient(
+                    product_id=ingredient.product_id,
+                    quantity=ingredient.quantity,
+                    unit=ingredient.unit,
+                    recipe_id=recipe_copy.id,
+                )
+                db.session.add(ingredient_copy)
+
+            for step in recipe.description:
+                step_copy = RecipeDescription(recipe_id=recipe_copy.id, text=step.text)
+                db.session.add(step_copy)
+            db.session.commit()
+
+            flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
+            return redirect(url_for("recipe.recipe", recipe_id=recipe_copy.id))
+    else:
+        flash("Что-то пошло не так")
+
+    return redirect(url_for("recipe.public_recipes"))

@@ -1,6 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import func
 from webapp.forms import RenameElement
 from webapp.db import db
 from webapp.recipe.models import Recipe
@@ -13,25 +12,13 @@ from webapp.shopping_list.forms import (
 from webapp.shopping_list.models import ShoppingItem, ShoppingList
 from webapp.utils import (
     flash_errors_from_form,
+    object_does_not_exist,
     update_item_to_shopping_list,
     update_recipe_to_shopping_list,
 )
 from uuid import uuid4
 
 blueprint = Blueprint("shopping_list", __name__, url_prefix="/shopping_lists")
-
-
-def shopping_list_does_not_exist(name):
-    shopping_list_already_exists = ShoppingList.query.filter(
-        func.lower(ShoppingList.name) == func.lower(name),
-        ShoppingList.user_id == current_user.id,
-    ).one_or_none()
-
-    if shopping_list_already_exists:
-        flash("Список покупок с таким именем уже существует", category="danger")
-        return False
-
-    return True
 
 
 @blueprint.route("/my-lists")
@@ -63,7 +50,7 @@ def create_new_shopping_list():
     if form.validate_on_submit():
         new_shopping_list_name = form.name.data.lower()
 
-        if shopping_list_does_not_exist(new_shopping_list_name):
+        if object_does_not_exist(ShoppingList, new_shopping_list_name):
             new_shopping_list = ShoppingList(
                 name=new_shopping_list_name, user_id=user.id, public_id=public_id
             )
@@ -103,7 +90,7 @@ def rename_shopping_list():
     if form.validate_on_submit():
         new_name = form.new_value.data.lower()
 
-        if shopping_list_does_not_exist(new_name):
+        if object_does_not_exist(ShoppingList, new_name):
             shopping_list_id = form.element_id.data
             shopping_list_to_rename = ShoppingList.query.filter(
                 ShoppingList.id == shopping_list_id
@@ -255,6 +242,7 @@ def add_recipe_to_shopping_list(recipe_id):
             ShoppingList.user_id == current_user.id,
         ).one()
         recipe = Recipe.query.get(recipe_id)
+        recipe_id = recipe.id
         portions = form.portions.data
         update_recipe_to_shopping_list(
             shopping_list=chosen_shopping_list, recipe=recipe, portions=portions
@@ -270,7 +258,7 @@ def add_recipe_to_shopping_list(recipe_id):
     return redirect(
         url_for(
             "recipe.recipe",
-            recipe_id=recipe.id,
+            recipe_id=recipe_id,
         )
     )
 

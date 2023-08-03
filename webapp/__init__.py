@@ -20,6 +20,7 @@ secret_key = os.environ.get("FLASK_SECRET_KEY")
 admin_email = os.environ.get("ADMIN_EMAIL")
 admin_password = os.environ.get("ADMIN_PASSWORD")
 
+
 def create_app(database_uri=database_uri, secret_key=secret_key):
     app = Flask(__name__)
 

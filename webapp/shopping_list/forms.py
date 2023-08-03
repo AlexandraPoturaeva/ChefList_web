@@ -35,7 +35,7 @@ class AddShoppingItem(FlaskForm):
         "Количество",
         validators=[Optional(), NumberRange(min=0)],
         default=0,
-        render_kw={"class": "form-control"},
+        render_kw={"class": "form-control", "type": "number", "min": "0"},
     )
 
     unit = SelectField(

@@ -48,7 +48,6 @@ class Recipe(db.Model):
     description = db.relationship(
         "RecipeDescription", backref="recipe", lazy=True, cascade="all, delete"
     )
-    preparation_time = db.Column(db.Text)
     cooking_time = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     ingredients = db.relationship(

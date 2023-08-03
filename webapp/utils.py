@@ -1,7 +1,10 @@
 from flask import flash
+from flask_login import current_user
+from sqlalchemy import func
 from webapp.db import db
 from webapp.shopping_list.models import ShoppingItem
 from webapp.user.models import User
+
 
 def update_item_to_shopping_list(shopping_list, name, quantity, unit):
     exist_item = ShoppingItem.query.filter(
@@ -51,3 +54,16 @@ def get_admin_id():
         admin_id = admin.id
 
     return admin_id
+
+
+def object_does_not_exist(model, name):
+    object_already_exists = model.query.filter(
+        func.lower(model.name) == func.lower(name),
+        model.user_id == current_user.id,
+    ).one_or_none()
+
+    if object_already_exists:
+        flash("У Вас уже есть запись с таким именем", category="danger")
+        return False
+
+    return True
