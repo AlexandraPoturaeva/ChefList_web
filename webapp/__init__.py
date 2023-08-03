@@ -324,6 +324,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
     @app.route("/recipes/<int:recipe_id>")
     def recipe(recipe_id):
+        form = ChooseListForm()
         recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
         if not recipe:
             return redirect(url_for("recipes"))
@@ -342,16 +343,16 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             flash("Этот рецепт Вам недоступен")
             return redirect(url_for("recipes"))
 
-        form = ChooseListForm()
+        elif current_user.is_authenticated:
+            if not current_user.shopping_lists:
+                new_shopping_list = ShoppingList(
+                    name="Мой список покупок",
+                    user_id=current_user.id,
+                    public_id=str(uuid4()),
+                )
+                db.session.add(new_shopping_list)
+                db.session.commit()
 
-        if current_user_id and not current_user.shopping_lists:
-            new_shopping_list = ShoppingList(
-                name="Мой список покупок",
-                user_id=current_user.id,
-                public_id=str(uuid4()),
-            )
-            db.session.add(new_shopping_list)
-            db.session.commit()
             form.name.choices = [
                 shopping_list.name for shopping_list in current_user.shopping_lists
             ]
