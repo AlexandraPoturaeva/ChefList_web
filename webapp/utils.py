@@ -1,7 +1,7 @@
 from flask import flash
 from webapp.db import db
 from webapp.shopping_list.models import ShoppingItem
-
+from webapp.user.models import User
 
 def update_item_to_shopping_list(shopping_list, name, quantity, unit):
     exist_item = ShoppingItem.query.filter(
@@ -41,3 +41,13 @@ def flash_errors_from_form(form):
                 'Ошибка в поле "{}": {}'.format(getattr(form, field).label.text, error),
                 category="danger",
             )
+
+
+def get_admin_id():
+    admin_id = None
+    admin = User.query.filter(User.name == "admin").one_or_none()
+
+    if admin:
+        admin_id = admin.id
+
+    return admin_id

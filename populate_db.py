@@ -59,7 +59,6 @@ def populate_db(
                     user_id=admin_id,
                     name=recipe["name"],
                     category=recipe["category"],
-                    preparation_time=recipe["preparation_time"],
                     cooking_time=recipe["cooking_time"],
                 )
                 db.session.add(recipe_obj)
