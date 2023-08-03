@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block content %} {% include 'static_recipe.html' %}
+{% extends "base.html" %} {% block content %} {% include 'recipe/static_recipe.html' %}
 {% if current_user.is_authenticated %}
 <div class="row">
   <div class="col"></div>
@@ -12,7 +12,7 @@
       Добавить ингредиенты в список покупок
     </button>
     {% if recipe.user_id != current_user.id %}
-      <a href="{{ url_for('copy_to_my_recipes', recipe_id = recipe.id) }}"
+      <a href="{{ url_for('recipe.copy_to_my_recipes', recipe_id = recipe.id) }}"
          class="btn btn-primary">
         Скопировать в мои рецепты
       </a>
@@ -30,7 +30,7 @@
         <div class="modal-body">
           <div class="col 12 text-center">
             <form
-              action=" {{ url_for('add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
+              action=" {{ url_for('shopping_list.add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
               method="POST"
             >
               {{ form.hidden_tag() }}

@@ -1,7 +1,7 @@
 import pytest
 from webapp import create_app
-from webapp.model import db
-from webapp.model import User
+from webapp.db import db
+from webapp.db import User
 
 
 @pytest.fixture()

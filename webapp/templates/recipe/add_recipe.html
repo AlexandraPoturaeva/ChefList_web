@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block content %}
-<form action=" {{ url_for('add_recipe') }}" method="POST">
+<form action=" {{ url_for('recipe.add_recipe') }}" method="POST">
   {{ form.hidden_tag() }}
   <h2>Создание рецепта</h2>
   <div class="p-2"></div>

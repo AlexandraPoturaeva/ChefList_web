@@ -238,15 +238,15 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav me-auto mb-2 mb-md-0">
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('recipes') }}">Рецепты</a>
+              <a class="nav-link" href="{{ url_for('recipe.public_recipes') }}">Рецепты</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('my_recipes') }}"
+              <a class="nav-link" href="{{ url_for('recipe.my_recipes') }}"
                 >Мои рецепты</a
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('show_my_shopping_lists') }}"
+              <a class="nav-link" href="{{ url_for('shopping_list.show_my_shopping_lists') }}"
                 >Мои списки покупок</a
               >
             </li>
@@ -256,20 +256,20 @@
             {% if current_user.is_anonymous %}
             <a
               class="btn btn-outline-success"
-              href="{{ url_for('registration') }}"
+              href="{{ url_for('user.registration') }}"
               role="button"
               >Зарегистрироваться</a
             >
             <a
               class="btn btn-outline-success"
-              href="{{ url_for('login') }}"
+              href="{{ url_for('user.login') }}"
               role="button"
               >Войти</a
             >
             {% else %}
             <a
               class="btn btn-outline-success"
-              href="{{ url_for('logout') }}"
+              href="{{ url_for('user.logout') }}"
               role="button"
               >Выйти</a
             >

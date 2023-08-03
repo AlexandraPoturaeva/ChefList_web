@@ -7,7 +7,7 @@
         <span class="cooking-step-num input-group-text">1</span>
         <textarea class="new-cooking-step-text form-control" aria-label="With textarea" rows="3" required></textarea>
     </div>
-    <button type="submit" class="add-cooking-step-button btn btn-primary" data-recipe-id='{{ recipe_id }}'>Добавить</button>
+    <button type="submit" class="add-cooking-step-button btn btn-primary" data-recipe-id='{{ recipe.id }}'>Добавить</button>
 </form>
 
 <h2>Ингредиенты</h2>
@@ -36,11 +36,11 @@
             </select>
         </div>
     </div>
-<button type="submit" class="add-ingredient-button btn btn-primary" data-recipe-id='{{ recipe_id }}'>Добавить</button>
+<button type="submit" class="add-ingredient-button btn btn-primary" data-recipe-id='{{ recipe.id }}'>Добавить</button>
 </form>
 
 <div class="p-2"></div>
-<a class="btn btn-success w-100 py-2" href="{{ url_for('recipe', recipe_id=recipe_id) }}">
+<a class="btn btn-success w-100 py-2" href="{{ url_for('recipe.recipe', recipe_id=recipe.id) }}">
     Завершить и показать рецепт
 </a>
 {% endblock %}

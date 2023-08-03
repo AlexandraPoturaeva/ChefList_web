@@ -1,9 +1,5 @@
-from flask_login import UserMixin
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-
-db = SQLAlchemy(engine_options={"pool_pre_ping": True})
+from webapp.db import db
 
 PRODUCT_CATEGORIES = {
     "Хлебобулочные изделия": "burlywood",
@@ -33,57 +29,6 @@ RECIPE_CATEGORIES = {
     "Торты": "mistyrose",
     "Блины и оладьи": "burlywood",
 }
-
-UNITS = [
-    "г",
-    "мл",
-    "шт.",
-    "л",
-    "кг",
-    "ст. ложка",
-    "ч. ложка",
-    "стакан",
-    "по вкусу",
-    "зубчик",
-    "веточка",
-]
-
-
-class ProjectSettings(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
-    value = db.Column(db.Text, nullable=False)
-
-
-class User(db.Model, UserMixin):
-    __tablename__ = "user"
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.Text, nullable=False, unique=True)
-    password_hash = db.Column(db.Text, nullable=False)
-    name = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    shopping_lists = db.relationship("ShoppingList", backref="user", lazy=True)
-    recipes = db.relationship(
-        "Recipe", backref="user", lazy=True, cascade="all, delete"
-    )
-
-    def __init__(self, email, name):
-        self.email = email
-        self.name = name
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def __repr__(self):
-        return (
-            f"User {self.id} "
-            f"\nemail: {self.email} "
-            f"\nname: {self.name}"
-            f"\ncreated_at {self.created_at}"
-        )
 
 
 class Product(db.Model):
@@ -133,28 +78,3 @@ class Ingredient(db.Model):
 
     def __repr__(self):
         return f"<Ingredient: {self.product_id} for recipe {self.recipe_id}>"
-
-
-class ShoppingList(db.Model):
-    __tablename__ = "shopping_list"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    shopping_items = db.relationship(
-        "ShoppingItem", backref="shopping_list", lazy=True, cascade="all, delete"
-    )
-    public_id = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-
-class ShoppingItem(db.Model):
-    __tablename__ = "shopping_item"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False)
-    category = db.Column(db.Text)
-    shopping_list_id = db.Column(
-        db.Integer, db.ForeignKey("shopping_list.id"), nullable=False
-    )
-    quantity = db.Column(db.Float)
-    unit = db.Column(db.Text)
-    checked = db.Column(db.Boolean, default=False)
