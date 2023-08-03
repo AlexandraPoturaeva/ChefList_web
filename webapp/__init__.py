@@ -330,22 +330,21 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
         admin = User.query.filter(User.name == "admin").one_or_none()
 
+        admin_id = None
         if admin:
             admin_id = admin.id
-        else:
-            admin_id = None
 
-        if current_user.is_anonymous:
-            if recipe.user_id != admin_id:
-                flash("Рецепт доступен только авторизированным пользователям!")
-                return redirect(url_for("recipes"))
-        else:
-            if recipe.user_id != admin_id and recipe.user_id != current_user.id:
-                flash("У Вас нет прав на доступ к этому рецепту!")
-                return redirect(url_for("recipes"))
+        current_user_id = None
+        if current_user.is_authenticated:
+            current_user_id = current_user.id
+
+        if recipe.user_id != admin_id and recipe.user_id != current_user_id:
+            flash("Этот рецепт Вам недоступен")
+            return redirect(url_for("recipes"))
+
         form = ChooseListForm()
 
-        if not current_user.shopping_lists:
+        if current_user_id and not current_user.shopping_lists:
             new_shopping_list = ShoppingList(
                 name="Мой список покупок",
                 user_id=current_user.id,
@@ -353,10 +352,9 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
             )
             db.session.add(new_shopping_list)
             db.session.commit()
-
-        form.name.choices = [
-            shopping_list.name for shopping_list in current_user.shopping_lists
-        ]
+            form.name.choices = [
+                shopping_list.name for shopping_list in current_user.shopping_lists
+            ]
 
         return render_template(
             "recipe.html",
