@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from webapp.db import UNITS
-from webapp.recipe.models import RECIPE_CATEGORIES, PRODUCT_CATEGORIES
+from webapp.recipe.models import RECIPE_CATEGORIES, PRODUCT_CATEGORIES, CUISINES, DIETS
 from wtforms import (
     StringField,
     SubmitField,
@@ -64,4 +64,33 @@ class AddRecipeForm(FlaskForm):
     create = SubmitField(
         "Создать рецепт и перейти к добавлению ингредиентов",
         render_kw={"class": "btn btn-success w-100 py-2"},
+    )
+
+
+class FindRecipeForm(FlaskForm):
+    name = StringField(
+        "Название рецепта",
+        render_kw={"class": "form-control"},
+    )
+    category = SelectField(
+        "Категория рецепта",
+        choices=list(RECIPE_CATEGORIES.keys()),
+        render_kw={"class": "form-control"},
+    )
+
+    cuisine = SelectField(
+        "Кухня",
+        choices=list(CUISINES.keys()),
+        render_kw={"class": "form-control"},
+    )
+
+    diet = SelectField(
+        "Диета",
+        choices=list(DIETS.keys()),
+        render_kw={"class": "form-control"},
+    )
+
+    search = SubmitField(
+        "Найти рецепты",
+        render_kw={"class": "btn btn-primary"},
     )
