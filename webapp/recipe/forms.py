@@ -52,7 +52,8 @@ class AddRecipeForm(FlaskForm):
     )
     category = SelectField(
         "Категория рецепта",
-        choices=list(RECIPE_CATEGORIES.keys()),
+        choices=[("", "Категория")]
+        + [(key, value[0]) for key, value in RECIPE_CATEGORIES.items()],
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
@@ -74,19 +75,20 @@ class FindRecipeForm(FlaskForm):
     )
     category = SelectField(
         "Категория рецепта",
-        choices=list(RECIPE_CATEGORIES.keys()),
+        choices=[("", "Категория")]
+        + [(key, value[0]) for key, value in RECIPE_CATEGORIES.items()],
         render_kw={"class": "form-control"},
     )
 
     cuisine = SelectField(
         "Кухня",
-        choices=list(CUISINES.keys()),
+        choices=[("", "Кухня")] + [(key, value[0]) for key, value in CUISINES.items()],
         render_kw={"class": "form-control"},
     )
 
     diet = SelectField(
         "Диета",
-        choices=list(DIETS.keys()),
+        choices=[("", "Диета")] + [(key, value[0]) for key, value in DIETS.items()],
         render_kw={"class": "form-control"},
     )
 
@@ -94,3 +96,21 @@ class FindRecipeForm(FlaskForm):
         "Найти рецепты",
         render_kw={"class": "btn btn-primary"},
     )
+
+    def validate(self, extra_validators=None):
+        if super().validate(extra_validators):
+            if all(
+                [
+                    data == ""
+                    for data in [
+                        self.name.data,
+                        self.category.data,
+                        self.diet.data,
+                        self.cuisine.data,
+                    ]
+                ]
+            ):
+                self.search.errors.append("Хотя бы одно поле должно быть заполнено")
+                return False
+            else:
+                return True
