@@ -8,6 +8,7 @@ from webapp.recipe.models import (
     Product,
     RECIPE_CATEGORIES,
     Recipe,
+    RecipeSchema,
     RecipeDescription,
 )
 from webapp.shopping_list.forms import ChooseListForm
@@ -139,9 +140,10 @@ def add_recipe_description(recipe_id):
 
 @blueprint.route("/<int:recipe_id>")
 def recipe(recipe_id):
+    recipe_schema = RecipeSchema()
     form = ChooseListForm()
     recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
-
+    print(recipe_schema.dump(recipe))
     if not recipe:
         return redirect(url_for("recipe.public_recipes"))
 
