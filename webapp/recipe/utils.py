@@ -1,14 +1,16 @@
 import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
 import requests
-from webapp.config import (
-    YANDEX_TRANSLATE_API_KEY,
-    YANDEX_FOLDER_ID,
-    SPOONACULAR_API_KEY,
-)
+
+YANDEX_FOLDER_ID = os.environ.get("YANDEX_FOLDER_ID")
+YANDEX_TRANSLATE_API_KEY = os.environ.get("YANDEX_TRANSLATE_API_KEY")
+SPOONACULAR_API_KEY = os.environ.get("SPOONACULAR_API_KEY")
+
+if not all([YANDEX_TRANSLATE_API_KEY, YANDEX_FOLDER_ID, SPOONACULAR_API_KEY]):
+    from webapp.config import (
+        YANDEX_TRANSLATE_API_KEY,
+        YANDEX_FOLDER_ID,
+        SPOONACULAR_API_KEY,
+    )
 
 
 def get_translation(texts, source_language_code, target_language_code):
