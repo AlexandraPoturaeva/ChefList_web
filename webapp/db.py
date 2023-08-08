@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 
 db = SQLAlchemy(engine_options={"pool_pre_ping": True})
+ma = Marshmallow()
 
 UNITS = [
     "г",

@@ -8,7 +8,7 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from populate_db import populate_db
 from webapp.shopping_list.models import ShoppingList
-from webapp.db import db, ProjectSettings
+from webapp.db import db, ma, ProjectSettings
 from webapp.user.models import User
 from webapp.recipe.models import Ingredient, Product, Recipe, RecipeDescription
 from webapp.recipe.views import blueprint as recipe_blueprint
@@ -32,6 +32,7 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
+    ma.init_app(app)
     migrate = Migrate(app, db)
     login_manager = LoginManager()
     login_manager.init_app(app)
