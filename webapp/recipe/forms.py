@@ -52,7 +52,7 @@ class AddRecipeForm(FlaskForm):
     )
     category = SelectField(
         "Категория рецепта",
-        choices=[("", "Категория")]
+        choices=[("-1", "Категория")]
         + [(key, value[0]) for key, value in RECIPE_CATEGORIES.items()],
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
@@ -75,20 +75,21 @@ class FindRecipeForm(FlaskForm):
     )
     category = SelectField(
         "Категория рецепта",
-        choices=[("", "Категория")]
+        choices=[("-1", "Категория")]
         + [(key, value[0]) for key, value in RECIPE_CATEGORIES.items()],
         render_kw={"class": "form-control"},
     )
 
     cuisine = SelectField(
         "Кухня",
-        choices=[("", "Кухня")] + [(key, value[0]) for key, value in CUISINES.items()],
+        choices=[("-1", "Кухня")]
+        + [(key, value[0]) for key, value in CUISINES.items()],
         render_kw={"class": "form-control"},
     )
 
     diet = SelectField(
         "Диета",
-        choices=[("", "Диета")] + [(key, value[0]) for key, value in DIETS.items()],
+        choices=[("-1", "Диета")] + [(key, value[0]) for key, value in DIETS.items()],
         render_kw={"class": "form-control"},
     )
 
@@ -101,7 +102,7 @@ class FindRecipeForm(FlaskForm):
         if super().validate(extra_validators):
             if all(
                 [
-                    data == ""
+                    data == "-1"
                     for data in [
                         self.name.data,
                         self.category.data,

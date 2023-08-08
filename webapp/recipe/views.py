@@ -1,8 +1,10 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from webapp.db import db, UNITS
-from webapp.recipe.forms import AddRecipeForm
+from webapp.recipe.forms import AddRecipeForm, FindRecipeForm
 from webapp.recipe.models import (
+    CUISINES,
+    DIETS,
     Ingredient,
     PRODUCT_CATEGORIES,
     Product,
@@ -10,6 +12,7 @@ from webapp.recipe.models import (
     Recipe,
     RecipeDescription,
 )
+from webapp.recipe.utils import SpoonacularAPI, get_translation
 from webapp.shopping_list.forms import ChooseListForm
 from webapp.shopping_list.models import ShoppingList
 from webapp.utils import flash_errors_from_form, get_admin_id, object_does_not_exist
@@ -231,3 +234,33 @@ def copy_to_my_recipes(recipe_id):
         flash("Что-то пошло не так")
 
     return redirect(url_for("recipe.public_recipes"))
+
+
+@blueprint.route("/find-recipes", methods=["GET", "POST"])
+def find_recipes():
+    recipes = SpoonacularAPI.find_recipe()
+    form = FindRecipeForm()
+
+    if form.validate_on_submit():
+        recipe_name = form.name.data
+        recipe_category = RECIPE_CATEGORIES.get(int(form.category.data), "  ")[1]
+        recipe_cuisine = CUISINES.get(int(form.cuisine.data), "  ")[1]
+        recipe_diet = DIETS.get(int(form.diet.data), "  ")[1]
+
+        recipes = SpoonacularAPI.find_recipe(
+            recipe_name=recipe_name,
+            recipe_category=recipe_category,
+            recipe_diet=recipe_diet,
+            recipe_cuisine=recipe_cuisine,
+        )
+    else:
+        flash_errors_from_form(form)
+
+    for recipe in recipes:
+        recipe["title"] = get_translation(
+            [recipe["title"]], source_language_code="en", target_language_code="ru"
+        )[0]["text"]
+
+    return render_template(
+        "/recipe/find_recipe_spoonacular.html", form=form, recipes=recipes
+    )
