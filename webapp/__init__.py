@@ -19,6 +19,7 @@ database_uri = os.environ.get("DATABASE_URL")
 secret_key = os.environ.get("FLASK_SECRET_KEY")
 admin_email = os.environ.get("ADMIN_EMAIL")
 admin_password = os.environ.get("ADMIN_PASSWORD")
+migrate = Migrate(compare_type=True)
 
 
 def create_app(database_uri=database_uri, secret_key=secret_key):
@@ -33,7 +34,8 @@ def create_app(database_uri=database_uri, secret_key=secret_key):
 
     db.init_app(app)
     ma.init_app(app)
-    migrate = Migrate(app, db)
+    migrate.init_app(app, db, compare_type=True)
+
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "user.login"

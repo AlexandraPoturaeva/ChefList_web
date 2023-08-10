@@ -38,6 +38,7 @@
             <img src="{{ recipe['image'] }}" class="card-img-top" alt="...">
             <div class="card-body">
                 <h5 class="card-title">{{ recipe['title'] }}</h5>
+                <a href="{{ url_for('recipe.get_spoonacular_recipe_info', recipe_id = recipe['id'], recipe_title = recipe['title']) }}" class="stretched-link"></a>
             </div>
         </div>
     </div>

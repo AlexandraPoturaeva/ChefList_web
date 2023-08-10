@@ -1,5 +1,6 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+import json
 from webapp.db import db, UNITS
 from webapp.recipe.forms import AddRecipeForm, FindRecipeForm
 from webapp.recipe.models import (
@@ -13,7 +14,8 @@ from webapp.recipe.models import (
     RecipeSchema,
     RecipeDescription,
 )
-from webapp.recipe.utils import SpoonacularAPI, get_translation
+from webapp.recipe.research_data.recipe_spoonacular import recipe_spoonacular
+from webapp.recipe.utils import SpoonacularAPI, get_translation, get_category_code
 from webapp.shopping_list.forms import ChooseListForm
 from webapp.shopping_list.models import ShoppingList
 from webapp.utils import flash_errors_from_form, get_admin_id, object_does_not_exist
@@ -53,9 +55,13 @@ def add_recipe():
         )
         if recipe_name_already_used:
             flash("Рецепт с таким именем уже существует", category="danger")
-            return render_template("/recipe/add_recipe.html", form=form)
+            return render_template(
+                "/recipe/add_recipe.html",
+                form=form,
+                RECIPE_CATEGORIES=RECIPE_CATEGORIES,
+            )
 
-        category = form.category.data
+        category = int(form.category.data)
         cooking_time = form.cooking_time.data
 
         recipe = Recipe(
@@ -75,7 +81,6 @@ def add_recipe():
             "recipe/add_ingredients&cooking_steps.html",
             recipe=recipe,
             PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
-            RECIPE_CATEGORIES=RECIPE_CATEGORIES,
             UNITS=UNITS,
         )
     else:
@@ -92,19 +97,28 @@ def add_ingredient(recipe_id):
         flash("При добавлении ингредиента произошла ошибка")
         return redirect(url_for("recipe.my_recipes"))
 
-    product_name = request.form.get("product_name")
+    product_name_ru = request.form.get("product_name")
     product_category = request.form.get("product_category")
     ingredient_quantity = request.form.get("ingredient_quantity")
     ingredient_unit = request.form.get("ingredient_unit")
 
-    if all([product_name, product_category, ingredient_quantity, ingredient_unit]):
-        product = Product.query.filter(Product.name == product_name).one_or_none()
+    if all([product_name_ru, product_category, ingredient_quantity, ingredient_unit]):
+        product = Product.query.filter(
+            Product.name_ru == product_name_ru,
+        ).one_or_none()
 
         if not product:
-            product = Product(name=product_name, category=product_category)
+            product_name_en = get_translation(
+                [product_name_ru], source_language_code="ru", target_language_code="en"
+            )[0]["text"]
+            product = Product(
+                name_ru=product_name_ru,
+                name_en=product_name_en,
+                category=product_category,
+            )
             db.session.add(product)
             db.session.commit()
-            product = Product.query.filter(Product.name == product_name).one()
+            product = Product.query.filter(Product.name_ru == product_name_ru).one()
 
         product_id = product.id
 
@@ -146,7 +160,8 @@ def recipe(recipe_id):
     recipe_schema = RecipeSchema()
     form = ChooseListForm()
     recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
-    print(recipe_schema.dump(recipe))
+    recipe_dict = recipe_schema.dump(recipe)
+
     if not recipe:
         return redirect(url_for("recipe.public_recipes"))
 
@@ -175,7 +190,6 @@ def recipe(recipe_id):
 
     return render_template(
         "/recipe/recipe.html",
-        PRODUCT_CATEGORIES=PRODUCT_CATEGORIES,
         RECIPE_CATEGORIES=RECIPE_CATEGORIES,
         recipe=recipe,
         form=form,
@@ -266,3 +280,73 @@ def find_recipes():
     return render_template(
         "/recipe/find_recipe_spoonacular.html", form=form, recipes=recipes
     )
+
+
+@blueprint.route("/info/<int:recipe_id>/<string:recipe_title>")
+def get_spoonacular_recipe_info(recipe_id, recipe_title):
+    # recipe_info = SpoonacularAPI.get_recipe_info(recipe_id)
+    recipe_info = recipe_spoonacular
+    recipe = dict()
+    recipe["name"] = recipe_title
+    recipe["cooking_time"] = recipe_info["cookingMinutes"]
+    recipe["servings"] = recipe_info["servings"]
+    steps = []
+    translate = []
+    for instruction in recipe_info["analyzedInstructions"]:
+        for step in instruction["steps"]:
+            step_text_en = step["step"]
+            steps.append(step_text_en)
+
+        translate = get_translation(
+            texts=steps, source_language_code="en", target_language_code="ru"
+        )
+
+    recipe["description"] = translate
+    recipe["ingredients"] = []
+
+    for ingredient_info in recipe_info["extendedIngredients"]:
+        product_name_en = ingredient_info["nameClean"]
+        product_name_ru = get_translation(
+            [product_name_en], source_language_code="en", target_language_code="ru"
+        )[0]["text"]
+
+        quantity = ingredient_info["measures"]["metric"]["amount"]
+        unit = ingredient_info["measures"]["metric"]["unitShort"]
+        if unit != "":
+            unit = get_translation(
+                [ingredient_info["measures"]["metric"]["unitShort"]],
+                source_language_code="en",
+                target_language_code="ru",
+            )[0]["text"]
+        else:
+            unit = "шт."
+
+        product = Product.query.filter(Product.name_ru == product_name_ru).one_or_none()
+
+        if not product:
+            product_category_name = ingredient_info["aisle"]
+            product_category = get_category_code(
+                cat_name=product_category_name, cat_dict=PRODUCT_CATEGORIES
+            )
+            product = Product(
+                name_en=product_name_en,
+                name_ru=product_name_ru,
+                category=product_category,
+            )
+            db.session.add(product)
+            db.session.commit()
+            product = Product.query.filter(Product.name_ru == product_name_ru).one()
+
+        ingredient = {
+            "product": {
+                "id": product.id,
+                "name_ru": product.name_ru,
+                "name_en": product.name_en,
+                "category": product.category,
+            },
+            "quantity": quantity,
+            "unit": unit,
+        }
+        recipe["ingredients"].append(ingredient)
+
+    return json.dumps(recipe, ensure_ascii=False)

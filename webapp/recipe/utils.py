@@ -1,5 +1,6 @@
 import os
 import requests
+from webapp.recipe.models import PRODUCT_CATEGORIES
 
 YANDEX_FOLDER_ID = os.environ.get("YANDEX_FOLDER_ID")
 YANDEX_TRANSLATE_API_KEY = os.environ.get("YANDEX_TRANSLATE_API_KEY")
@@ -83,7 +84,7 @@ class SpoonacularAPI:
             return False
 
     @classmethod
-    def get_recipe_ingredients(cls, recipe_id):
+    def get_recipe_info(cls, recipe_id):
         url = cls.base_url + str(recipe_id) + "/information"
         querystring = {
             "apiKey": SPOONACULAR_API_KEY,
@@ -92,13 +93,24 @@ class SpoonacularAPI:
         try:
             result = requests.get(url, headers=cls.headers, params=querystring)
             result.raise_for_status()
-            return result.json()["extendedIngredients"]
+            return result.json()
         except (requests.RequestException, ValueError):
             print("Сетевая ошибка")
             return False
 
 
+def get_category_code(cat_name, cat_dict):
+    cat_code = -1
+    for key, value in cat_dict.items():
+        if cat_name in value:
+            cat_code = key
+
+    return cat_code
+
+
 if __name__ == "__main__":
     print(
-        get_translation(["cow"], source_language_code="en", target_language_code="ru")
+        get_translation(
+            texts=["cow", "dog"], source_language_code="en", target_language_code="ru"
+        )
     )

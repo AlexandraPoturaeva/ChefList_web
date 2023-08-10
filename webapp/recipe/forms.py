@@ -21,7 +21,8 @@ class AddIngredientForm(FlaskForm):
     )
     category = SelectField(
         "Категория продукта",
-        choices=list(PRODUCT_CATEGORIES.keys()),
+        choices=[("-1", "Категория")]
+        + [(key, value[0]) for key, value in PRODUCT_CATEGORIES.items()],
         validators=[DataRequired()],
         render_kw={"class": "form-control"},
     )
