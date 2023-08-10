@@ -171,7 +171,8 @@ DIETS = {
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text, nullable=False, index=True, unique=True)
+    name_ru = db.Column(db.Text, nullable=False, index=True, unique=True)
+    name_en = db.Column(db.Text, nullable=False, index=True)
     category = db.Column(db.Integer)
 
     def __repr__(self):
