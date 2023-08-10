@@ -172,7 +172,7 @@ DIETS = {
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False, index=True, unique=True)
-    category = db.Column(db.Text)
+    category = db.Column(db.Integer)
 
     def __repr__(self):
         return f"<Product: {self.name}, category: {self.category}>"
@@ -182,7 +182,7 @@ class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    category = db.Column(db.Text)
+    category = db.Column(db.Integer)
     description = db.relationship(
         "RecipeDescription", backref="recipe", lazy=True, cascade="all, delete"
     )
