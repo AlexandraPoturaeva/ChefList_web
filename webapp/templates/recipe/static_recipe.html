@@ -1,30 +1,22 @@
 <div class="col-lg-8 mx-auto p-4 py-md-5">
-    <h1
-            style="background-color: {{ RECIPE_CATEGORIES[recipe.category] }}"
-            class="text-center"
-    >
-        {{ recipe.name }}
-    </h1>
+    <h1 class="text-center">{{ recipe.name }}</h1>
     <p class="fs-3 col-6 mx-auto text-center">{{ recipe.category }}</p>
     <p class="fw-bold fs-4">Время на приготовление:</p>
     <p class="fs-5 col-6 mx-auto">{{ recipe.cooking_time }} мин.</p>
     <p class="fw-bold fs-4">Описание</p>
     <ol class="list-group list-group-numbered list-group-flush">
         {% for step in recipe.description %}
-        <li class="list-group-item">{{ step.text }}</li>
+        <li class="list-group-item fs-4">{{ step.text }}</li>
         {% endfor %}
     </ol>
     <p class="fw-bold fs-4">Для приготовления Вам потребуется:</p>
     <div class="col-6 mx-auto">
-        <ul class="list-group">
+        <ol class="list-group list-group-flush">
             {% for ingredient in recipe.ingredients %}
-            <li
-                    class="list-group-item list-group-item-action fs-4"
-                    style="background-color: {{ PRODUCT_CATEGORIES[ingredient.product.category] }}"
-            >
+            <li class="list-group-item fs-4">
                 {{ ingredient }}
             </li>
             {% endfor %}
-        </ul>
+        </ol>
     </div>
 </div>
