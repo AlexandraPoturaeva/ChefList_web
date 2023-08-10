@@ -2,19 +2,37 @@ from datetime import datetime
 from webapp.db import db, ma
 
 PRODUCT_CATEGORIES = {
-    "Хлебобулочные изделия": "burlywood",
-    "Кондитерские изделия": "goldenrod",
-    "Молоко, сыр, яйца": "seashell",
-    "Мясо, птица": "brown",
-    "Сосиски, колбасы, деликатесы": "salmon",
-    "Рыба и морепродукты": "steelblue",
-    "Овощи и фрукты": "limegreen",
-    "Бакалея, соусы": "hotpink",
-    "Напитки": "magenta",
-    "Чай, кофе, какао": "rosybrown",
-    "Чипсы, орехи, сухарики": "tomato",
-    "Замороженные продукты": "lightskyblue",
-    "Консервы, мёд, варенье": "gray",
+    0: ["Хлебобулочные изделия", "Bakery/Bread"],
+    1: ["Здоровое питание", "Health Foods"],
+    2: ["Специи и приправы", "Spices and Seasonings"],
+    3: ["Всё для выпечки", "Baking"],
+    4: ["Макаронные изделия, крупы", "Pasta and Rice"],
+    5: ["Охлаждённые продукты", "Refrigerated"],
+    6: ["Консервированные продукты", "Canned and Jarred"],
+    7: ["Замороженные продукты", "Frozen"],
+    8: ["Варенье, мёд, ореховая паста", "Nut butters, Jams, and Honey"],
+    9: ["Масло, уксус, заправка для салата", "Oil, Vinegar, Salad Dressing"],
+    10: ["Соусы", "Condiments"],
+    11: ["Закуски, снэки"],
+    12: ["Молоко, молочные продукты, яйца", "Milk, Eggs, Other Dairy"],
+    13: ["Этнические продукты", "Ethnic Foods"],
+    14: ["Чай, кофе", "Tea and Coffee"],
+    15: ["Мясо, птица", "Meat"],
+    16: ["Деликатесы", "Gourmet"],
+    17: ["Сладости", "Sweet Snacks"],
+    18: ["Без глютена", "Gluten Free"],
+    19: ["Алкогольные напитки", "Alcoholic Beverages"],
+    20: ["Быстрые завтраки", "Cereal"],
+    21: ["Орехи", "Nuts"],
+    22: ["Напитки", "Beverages"],
+    23: ["Овощи и фрукты", "Produce"],
+    24: ["Домашнее производство", "Not in Grocery Store/Homemade"],
+    25: ["Морепродукты", "Seafood"],
+    26: ["Сыр", "Cheese"],
+    27: ["Сухофрукты", "Dried Fruits"],
+    28: ["Онлайн", "Online"],
+    29: ["Товары для гриля", "Grilling Supplies"],
+    30: ["Хлеб", "Bread"],
 }
 
 RECIPE_CATEGORIES = {
@@ -165,8 +183,6 @@ class Recipe(db.Model):
     name = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     category = db.Column(db.Text)
-    cuisine = db.Column(db.Integer)
-    diet = db.Column(db.Integer)
     description = db.relationship(
         "RecipeDescription", backref="recipe", lazy=True, cascade="all, delete"
     )
