@@ -63,12 +63,14 @@ def add_recipe():
 
         category = int(form.category.data)
         cooking_time = form.cooking_time.data
+        servings = int(form.servings.data)
 
         recipe = Recipe(
             name=name,
             user_id=current_user.id,
             category=category,
             cooking_time=cooking_time,
+            servings=servings,
         )
         db.session.add(recipe)
         db.session.commit()
@@ -191,7 +193,7 @@ def recipe(recipe_id):
     return render_template(
         "/recipe/recipe.html",
         RECIPE_CATEGORIES=RECIPE_CATEGORIES,
-        recipe=recipe,
+        recipe=recipe_dict,
         form=form,
     )
 
@@ -289,6 +291,9 @@ def get_spoonacular_recipe_info(recipe_id, recipe_title):
     recipe = dict()
     recipe["name"] = recipe_title
     recipe["cooking_time"] = recipe_info["cookingMinutes"]
+    recipe["category"] = get_category_code(
+        cat_name=recipe_info["dishTypes"][0], cat_dict=RECIPE_CATEGORIES
+    )
     recipe["servings"] = recipe_info["servings"]
     steps = []
     translate = []
@@ -349,4 +354,8 @@ def get_spoonacular_recipe_info(recipe_id, recipe_title):
         }
         recipe["ingredients"].append(ingredient)
 
-    return json.dumps(recipe, ensure_ascii=False)
+    return render_template(
+        "/recipe/recipe.html",
+        RECIPE_CATEGORIES=RECIPE_CATEGORIES,
+        recipe=recipe,
+    )
