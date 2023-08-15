@@ -4,16 +4,19 @@
   <h2>Создание рецепта</h2>
   <div class="p-2"></div>
   <div class="form-floating mb-3">
-    {{ form.name(placeholder="Название рецепта") }} {{
-    form.name.label(class="form-label") }}
+    {{ form.name(placeholder="Название") }}
+    {{ form.name.label(class="form-label") }}
   </div>
-  <div class="form-floating mb-3">
-    {{ form.category(placeholder="Категория рецепта") }} {{
-    form.category.label(class="form-label") }}
+  <div class="form mb-3">
+    {{ form.category(placeholder="Категория рецепта") }}
   </div>
   <div class="form-floating mb-3">
     {{ form.cooking_time(placeholder="Время на приготовление") }} {{
     form.cooking_time.label(class="form-label") }}
+  </div>
+  <div class="form-floating mb-3">
+    {{ form.servings(placeholder="Количество порций") }} {{
+    form.servings.label(class="form-label") }}
   </div>
   {{ form.create }}
   <div class="p-2"></div>
