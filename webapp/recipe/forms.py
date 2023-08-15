@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from webapp.db import UNITS
 from webapp.recipe.models import RECIPE_CATEGORIES, PRODUCT_CATEGORIES, CUISINES, DIETS
 from wtforms import (
+    IntegerField,
     StringField,
     SubmitField,
     FloatField,
@@ -61,6 +62,12 @@ class AddRecipeForm(FlaskForm):
     cooking_time = StringField(
         "Время на приготовление, мин",
         validators=[DataRequired()],
+        render_kw={"class": "form-control"},
+    )
+    servings = IntegerField(
+        "Количество порций",
+        validators=[DataRequired(), NumberRange(min=1)],
+        default=1,
         render_kw={"class": "form-control"},
     )
     create = SubmitField(
