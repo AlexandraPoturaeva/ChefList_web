@@ -1,53 +1,56 @@
 {% extends "base.html" %} {% block content %} {% include 'recipe/static_recipe.html' %}
 {% if current_user.is_authenticated %}
+<div class="p-1 text-center space-for-messages"></div>
 <div class="row">
-  <div class="col"></div>
-  <div class="col-5">
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-bs-toggle="modal"
-      data-bs-target="#add_recipe_to_shopping_list"
-    >
-      Добавить ингредиенты в список покупок
-    </button>
-    {% if recipe.user_id != current_user.id %}
-      <a href="{{ url_for('recipe.copy_to_my_recipes', recipe_id = recipe.id) }}"
-         class="btn btn-primary">
-        Скопировать в мои рецепты
-      </a>
-    {% endif %}
-  </div>
-  <div class="col"></div>
-  <div
-    class="modal fade create-new-list"
-    id="add_recipe_to_shopping_list"
-    tabindex="-1"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="col 12 text-center">
-            <form
-              action=" {{ url_for('shopping_list.add_recipe_to_shopping_list', recipe_id=recipe.id) }}"
-              method="POST"
-            >
-              {{ form.hidden_tag() }}
-              <div class="form-floating mb-3">
-                {{ form.name(placeholder="Название списка") }} {{
-                form.name.label(class="form-label") }}
-                <div class="form-floating mb-3">
-                  {{ form.portions(placeholder="Количество порций") }} {{
-                  form.portions.label(class="form-label") }}
-                </div>
-              </div>
-              {{ form.submit }}
-            </form>
-          </div>
-        </div>
-      </div>
+    <div class="col"></div>
+    <div class="col-5">
+        <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#add_recipe_to_shopping_list"
+        >
+            Добавить ингредиенты в список покупок
+        </button>
+        {% if recipe.user_id != current_user.id %}
+        <button
+                class="copy-recipe btn btn-primary"
+                data-recipe-info='{{ recipe }}'
+                data-recipe-id='{{ recipe["id"] }}'>
+            Скопировать в мои рецепты
+        </button>
+        {% endif %}
     </div>
-  </div>
+    <div class="col"></div>
+    <div
+            class="modal fade create-new-list"
+            id="add_recipe_to_shopping_list"
+            tabindex="-1"
+            aria-hidden="true"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="col 12 text-center">
+                        <form
+                                action=" {{ url_for('shopping_list.add_recipe_to_shopping_list', recipe=recipe) }}"
+                                method="POST"
+                        >
+                            {{ form.hidden_tag() }}
+                            <div class="form-floating mb-3">
+                                {{ form.name(placeholder="Название списка") }}
+                                {{ form.name.label(class="form-label") }}
+                                <div class="form-floating mb-3">
+                                    {{ form.portions(placeholder="Количество порций") }} {{
+                                    form.portions.label(class="form-label") }}
+                                </div>
+                            </div>
+                            {{ form.submit }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endif %} {% endblock %}
