@@ -1,6 +1,6 @@
+import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-import json
 from webapp.db import db, UNITS
 from webapp.recipe.forms import AddRecipeForm, FindRecipeForm
 from webapp.recipe.models import (
@@ -162,18 +162,18 @@ def recipe(recipe_id):
     recipe_schema = RecipeSchema()
     form = ChooseListForm()
     recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
-    recipe_dict = recipe_schema.dump(recipe)
-
     if not recipe:
         return redirect(url_for("recipe.public_recipes"))
-
-    admin_id = get_admin_id()
+    # with open("recipe_schema.py", "w", encoding="utf8") as f:
+    #     f.write("recipe =")
+    #     json.dump(recipe_schema.dump(recipe), f, ensure_ascii=False)
+    recipe_info = recipe_schema.dump(recipe)
 
     current_user_id = None
     if current_user.is_authenticated:
         current_user_id = current_user.id
 
-    if recipe.user_id != admin_id and recipe.user_id != current_user_id:
+    if recipe_info["user_id"] not in ("spoonacular", current_user_id):
         flash("Этот рецепт Вам недоступен")
         return redirect(url_for("recipe.public_recipes"))
 
@@ -193,7 +193,7 @@ def recipe(recipe_id):
     return render_template(
         "/recipe/recipe.html",
         RECIPE_CATEGORIES=RECIPE_CATEGORIES,
-        recipe=recipe_dict,
+        recipe=recipe_info,
         form=form,
     )
 
@@ -211,47 +211,45 @@ def delete_recipe(recipe_id):
     return redirect(url_for("recipe.my_recipes"))
 
 
-@blueprint.route("/copy_to_my_recipes/<int:recipe_id>")
+@blueprint.route("/copy_to_my_recipes", methods=["POST"])
 @login_required
-def copy_to_my_recipes(recipe_id):
-    admin_id = get_admin_id()
-    recipe = Recipe.query.filter(
-        Recipe.id == recipe_id, Recipe.user_id == admin_id
-    ).one_or_none()
+def copy_to_my_recipes():
+    recipe = json.loads(
+        request.form.get("recipe_info").replace('"', '\\"').replace("'", '"')
+    )
+    if object_does_not_exist(Recipe, recipe["name"]):
+        recipe_obj = Recipe(
+            name=recipe["name"],
+            user_id=current_user.id,
+            category=recipe["category"],
+            cooking_time=recipe["cooking_time"],
+            servings=recipe["servings"],
+        )
+        db.session.add(recipe_obj)
+        recipe_copy = Recipe.query.filter(
+            Recipe.name == recipe["name"], Recipe.user_id == current_user.id
+        ).one()
 
-    if recipe:
-        if object_does_not_exist(Recipe, recipe.name):
-            recipe_obj = Recipe(
-                name=recipe.name,
-                user_id=current_user.id,
-                category=recipe.category,
-                cooking_time=recipe.cooking_time,
+        for ingredient in recipe["ingredients"]:
+            ingredient_copy = Ingredient(
+                product_id=ingredient["product"]["id"],
+                quantity=ingredient["quantity"],
+                unit=ingredient["unit"],
+                recipe_id=recipe_copy.id,
             )
-            db.session.add(recipe_obj)
-            recipe_copy = Recipe.query.filter(
-                Recipe.name == recipe.name, Recipe.user_id == current_user.id
-            ).one()
+            db.session.add(ingredient_copy)
 
-            for ingredient in recipe.ingredients:
-                ingredient_copy = Ingredient(
-                    product_id=ingredient.product_id,
-                    quantity=ingredient.quantity,
-                    unit=ingredient.unit,
-                    recipe_id=recipe_copy.id,
-                )
-                db.session.add(ingredient_copy)
+        for step in recipe["description"]:
+            step_copy = RecipeDescription(recipe_id=recipe_copy.id, text=step["text"])
+            db.session.add(step_copy)
+        db.session.commit()
 
-            for step in recipe.description:
-                step_copy = RecipeDescription(recipe_id=recipe_copy.id, text=step.text)
-                db.session.add(step_copy)
-            db.session.commit()
+        flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
+        return str(recipe_copy.id)
 
-            flash("Рецепт успешно добавлен в Ваши рецепты", category="success")
-            return redirect(url_for("recipe.recipe", recipe_id=recipe_copy.id))
     else:
-        flash("Что-то пошло не так")
-
-    return redirect(url_for("recipe.public_recipes"))
+        flash("У Вас уже есть рецепт с таким названием")
+        return "fail"
 
 
 @blueprint.route("/find-recipes", methods=["GET", "POST"])
@@ -286,7 +284,23 @@ def find_recipes():
 
 @blueprint.route("/info/<int:recipe_id>/<string:recipe_title>")
 def get_spoonacular_recipe_info(recipe_id, recipe_title):
+    form = ChooseListForm()
+
+    if current_user.is_authenticated:
+        if not current_user.shopping_lists:
+            new_shopping_list = ShoppingList(
+                name="Мой список покупок",
+                user_id=current_user.id,
+                public_id=str(uuid4()),
+            )
+            db.session.add(new_shopping_list)
+            db.session.commit()
+        form.name.choices = [
+            shopping_list.name for shopping_list in current_user.shopping_lists
+        ]
+
     # recipe_info = SpoonacularAPI.get_recipe_info(recipe_id)
+    # print(recipe_info)
     recipe_info = recipe_spoonacular
     recipe = dict()
     recipe["name"] = recipe_title
@@ -295,6 +309,7 @@ def get_spoonacular_recipe_info(recipe_id, recipe_title):
         cat_name=recipe_info["dishTypes"][0], cat_dict=RECIPE_CATEGORIES
     )
     recipe["servings"] = recipe_info["servings"]
+    recipe["user_id"] = "spoonacular"
     steps = []
     translate = []
     for instruction in recipe_info["analyzedInstructions"]:
@@ -358,4 +373,5 @@ def get_spoonacular_recipe_info(recipe_id, recipe_title):
         "/recipe/recipe.html",
         RECIPE_CATEGORIES=RECIPE_CATEGORIES,
         recipe=recipe,
+        form=form,
     )
