@@ -50,6 +50,7 @@ RECIPE_CATEGORIES = {
     11: ["Десерты", "dessert"],
     12: ["Выпечка", "bread"],
     13: ["Маринады", "marinade"],
+    14: ["Ланч", "lunch"],
 }
 
 CUISINES = {
@@ -242,6 +243,7 @@ class IngredientSchema(ma.SQLAlchemyAutoSchema):
 class RecipeSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Recipe
+        include_fk = True
 
     ingredients = ma.Nested(nested=IngredientSchema, many=True)
     description = ma.Nested(nested=RecipeDescriptionSchema, many=True)
