@@ -248,8 +248,7 @@ def copy_to_my_recipes():
         return str(recipe_copy.id)
 
     else:
-        flash("У Вас уже есть рецепт с таким названием")
-        return "fail"
+        return "my_recipes"
 
 
 @blueprint.route("/find-recipes", methods=["GET", "POST"])
