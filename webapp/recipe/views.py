@@ -24,13 +24,6 @@ from uuid import uuid4
 blueprint = Blueprint("recipe", __name__, url_prefix="/recipes")
 
 
-@blueprint.route("/public")
-def public_recipes():
-    admin_id = get_admin_id()
-    public_recipes = Recipe.query.filter(Recipe.user_id == admin_id).all()
-    return render_template("recipe/public_recipes.html", public_recipes=public_recipes)
-
-
 @blueprint.route("/my_recipes")
 @login_required
 def my_recipes():
@@ -163,10 +156,9 @@ def recipe(recipe_id):
     form = ChooseListForm()
     recipe = Recipe.query.filter(Recipe.id == recipe_id).one_or_none()
     if not recipe:
-        return redirect(url_for("recipe.public_recipes"))
-    # with open("recipe_schema.py", "w", encoding="utf8") as f:
-    #     f.write("recipe =")
-    #     json.dump(recipe_schema.dump(recipe), f, ensure_ascii=False)
+        flash("Рецепт с таким id не существует")
+        return redirect(url_for("recipe.my_recipes"))
+
     recipe_info = recipe_schema.dump(recipe)
 
     current_user_id = None
@@ -174,8 +166,8 @@ def recipe(recipe_id):
         current_user_id = current_user.id
 
     if recipe_info["user_id"] not in ("spoonacular", current_user_id):
-        flash("Этот рецепт Вам недоступен")
-        return redirect(url_for("recipe.public_recipes"))
+        flash("У Вас недостаточно прав для просмотра этого рецепта")
+        return redirect(url_for("recipe.my_recipes"))
 
     elif current_user.is_authenticated:
         if not current_user.shopping_lists:
