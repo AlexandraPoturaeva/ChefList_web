@@ -2,7 +2,7 @@
     <h1 class="text-center">{{ recipe["name"] }}</h1>
     <p class="fs-3 col-6 mx-auto text-center">{{ RECIPE_CATEGORIES.get(recipe["category"], "  ")[0] }}</p>
     <p class="fw-bold fs-4">Время на приготовление:</p>
-    <p class="fs-5 col-6 mx-auto">{{ recipe["cooking_time"]|str + ' мин.' if recipe["cooking_time"] != -1 else 'не указано' }}</p>
+    <p class="fs-5 col-6 mx-auto">{{ recipe["cooking_time"]|string + ' мин.' if recipe["cooking_time"] != -1 else 'не указано' }}</p>
     <p class="fw-bold fs-4">Описание</p>
     <ol class="list-group list-group-numbered list-group-flush">
         {% for step in recipe["description"] %}
