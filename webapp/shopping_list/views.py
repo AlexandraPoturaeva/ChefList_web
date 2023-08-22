@@ -226,7 +226,7 @@ def edit_quantity_of_shopping_item():
     return redirect(redirect_url)
 
 
-@blueprint.route("/add_recipe_to_shopping_list/<int:recipe_id>", methods=["POST"])
+@blueprint.route("/add_recipe_to_shopping_list", methods=["POST"])
 def add_recipe_to_shopping_list(recipe_id):
     form = ChooseListForm()
 
