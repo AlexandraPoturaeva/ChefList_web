@@ -17,6 +17,7 @@ from webapp.utils import (
     update_recipe_to_shopping_list,
 )
 from uuid import uuid4
+import json
 
 blueprint = Blueprint("shopping_list", __name__, url_prefix="/shopping_lists")
 
@@ -227,7 +228,7 @@ def edit_quantity_of_shopping_item():
 
 
 @blueprint.route("/add_recipe_to_shopping_list", methods=["POST"])
-def add_recipe_to_shopping_list(recipe_id):
+def add_recipe_to_shopping_list():
     form = ChooseListForm()
 
     shopping_lists = ShoppingList.query.filter(
@@ -241,8 +242,11 @@ def add_recipe_to_shopping_list(recipe_id):
             ShoppingList.name == form.name.data,
             ShoppingList.user_id == current_user.id,
         ).one()
+        recipe_info = json.loads(
+            form.recipe_info.data.replace('"', '\\"').replace("'", '"')
+        )
+        recipe_id = recipe_info["id"]
         recipe = Recipe.query.get(recipe_id)
-        recipe_id = recipe.id
         portions = form.portions.data
         update_recipe_to_shopping_list(
             shopping_list=chosen_shopping_list, recipe=recipe, portions=portions
@@ -251,16 +255,16 @@ def add_recipe_to_shopping_list(recipe_id):
             f"Ингредиенты рецепта добавлены в список {chosen_shopping_list.name}",
             category="success",
         )
+        return redirect(
+            url_for(
+                "recipe.recipe",
+                recipe_id=recipe_id,
+            )
+        )
 
     else:
         flash_errors_from_form(form)
-
-    return redirect(
-        url_for(
-            "recipe.recipe",
-            recipe_id=recipe_id,
-        )
-    )
+        return "failed"
 
 
 @blueprint.route(

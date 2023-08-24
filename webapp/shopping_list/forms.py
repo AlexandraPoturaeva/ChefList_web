@@ -71,6 +71,7 @@ class ChooseListForm(FlaskForm):
         coerce=str,
         render_kw={"class": "form-control"},
     )
+    recipe_info = HiddenField(validators=[DataRequired()])
     portions = IntegerField(
         "Количество порций",
         validators=[DataRequired(), NumberRange(min=1)],

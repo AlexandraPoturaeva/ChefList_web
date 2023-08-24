@@ -214,7 +214,7 @@ class Ingredient(db.Model):
     product = db.relationship("Product")
 
     def __str__(self):
-        product_name = db.session.query(Product).get(self.product_id).name
+        product_name = db.session.query(Product).get(self.product_id).name_ru
         return f"{product_name}, {self.quantity} {self.unit}"
 
     def __repr__(self):

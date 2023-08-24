@@ -31,7 +31,7 @@ def update_recipe_to_shopping_list(shopping_list, recipe, portions):
     for ingredient in recipe.ingredients:
         update_item_to_shopping_list(
             shopping_list=shopping_list,
-            name=ingredient.product.name,
+            name=ingredient.product.name_ru,
             quantity=ingredient.quantity * portions,
             unit=ingredient.unit,
         )
