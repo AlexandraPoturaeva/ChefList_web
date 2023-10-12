@@ -18,9 +18,9 @@
         </div>
         <div class="cols-xs-auto col-md-auto">
             <select class="product-category form-select" aria-label="Default select example" required>
-                <option value="">Категория продукта</option>
-                {% for category in PRODUCT_CATEGORIES.keys() %}
-                    <option value="{{ category }}">{{ category }}</option>
+                <option value="">Категория</option>
+                {% for category in PRODUCT_CATEGORIES %}
+                    <option value="{{ category }}">{{ PRODUCT_CATEGORIES[category][0] }}</option>
                 {% endfor %}
             </select>
         </div>

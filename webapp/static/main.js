@@ -251,6 +251,22 @@ If it's failed - puts message 'Что-то пошло не так...' into the p
                     }, 4000);
 
         });
+
+    $(document).on("click", ".copy-recipe", function (event) {
+        var recipe_info = $(this).data('recipe-info');
+        var recipe_id = $(this).data('recipe-id');
+        console.log(recipe_id);
+        event.preventDefault();
+        $.post(
+            "/recipes/copy_to_my_recipes",
+            {recipe_info: recipe_info})
+            .done(function(data){
+            window.location = "/recipes/" + data;
+            })
+            .fail(function(){
+                $('.space-for-messages').text('Что-то пошло не так...').css("color", "red");
+            });
+    });
 });
 
 /*

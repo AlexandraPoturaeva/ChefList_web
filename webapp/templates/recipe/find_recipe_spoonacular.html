@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block content %}
+<div class="row justify-content-md-center">
+    <div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+        <div class="col-sm-8 col-md-8 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <form
+                    action=" {{ url_for('recipe.find_recipes') }}"
+                    method="POST">
+                        <div class="row row-cols-xs-auto g-3 justify-content-md-center">
+                        {{ form.csrf_token }}
+                            <div class="cols-xs-auto col-md">
+                                {{ form.name(placeholder="Название") }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ form.category(placeholder="Категория") }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ form.cuisine(placeholder="Кухня") }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ form.diet(placeholder="Диета") }}
+                            </div>
+                            <div class="cols-xs-auto col-md-auto">
+                                {{ form.search }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+<div class="hidden-xs col-sm-2 col-md-2 col-lg-4"></div>
+</div>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for recipe in recipes %}
+    <div class="col">
+        <div class="card h-100">
+            <img src="{{ recipe['image'] }}" class="card-img-top" alt="...">
+            <div class="card-body">
+                <h5 class="card-title">{{ recipe['title'] }}</h5>
+                <a href="{{ url_for('recipe.get_spoonacular_recipe_info', recipe_id = recipe['id'], recipe_title = recipe['title']) }}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {%endfor%}
+</div>
+{% endblock %}
