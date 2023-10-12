@@ -19,7 +19,6 @@ Cайт для составления и хранения списков пок�
 *Linux и Mac:*
 
 Выполните в терминале в папке проекта, предварительно изменив DATABASE_URL и FLASK_SECRET_KEY:
-
 export DATABASE_URL=ENTER_DATABASE_URL && export FLASK_SECRET_KEY=ENTER_SECRET_KEY && FLASK_APP=webapp && export FLASK_ENV=development && flask run
 
 *Windows:*
@@ -27,6 +26,16 @@ export DATABASE_URL=ENTER_DATABASE_URL && export FLASK_SECRET_KEY=ENTER_SECRET_K
 1. Создайте файл run.bat по образцу run.bat.sample
 2. Выполните в терминале в папке проекта: run
 
+## Docker
+Предварительно создайте в корне проекта файл .env по образцу .env.sample
+
+*Сбор образа:*
+
+Выполните в терминале в папке проекта: docker build --tag cheflist_web .
+
+*Запуск образа:*
+
+Выполните в терминале в папке проекта: docker run --env-file=.env -p 5001:5000 cheflist_web
 
 ## Develop
 
@@ -57,5 +66,3 @@ export DATABASE_URL=ENTER_DATABASE_URL && export FLASK_SECRET_KEY=ENTER_SECRET_K
 ```@id:editor.defaultFormatter @lang:python python formatter```
 3. В выпадающем меню выбрать **Black Formatter**
 4. Теперь black будет переформатировать файлы в соответствии со своими правилами форматирования при каждом сохранении файлов.
-
-
