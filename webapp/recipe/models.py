@@ -78,30 +78,3 @@ class Ingredient(db.Model):
 
     def __repr__(self):
         return f"<Ingredient: {self.product_id} for recipe {self.recipe_id}>"
-
-
-class ProductSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Product
-
-
-class RecipeDescriptionSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = RecipeDescription
-        exclude = ("id",)
-
-
-class IngredientSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Ingredient
-        exclude = ("id",)
-
-    product = ma.Nested(nested=ProductSchema)
-
-
-class RecipeSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Recipe
-
-    ingredients = ma.Nested(nested=IngredientSchema, many=True)
-    description = ma.Nested(nested=RecipeDescriptionSchema, many=True)
